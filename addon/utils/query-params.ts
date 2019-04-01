@@ -11,10 +11,11 @@ interface RouteParams {
     sort: string[];
 }
 
-interface PaginationController extends Controller {
+export interface PaginationController extends Controller {
     offset: number;
     limit: number;
     sort: string[];
+    modelName: string;
     [key: string]: any;
 }
 
@@ -27,7 +28,6 @@ export function buildQueryParams(
 ) {
     let params = routeParams || {};
     let list: any = controller[queryParamListName];
-    // let list = get(controller, queryParamListName);
     let queryParams = getParamsObject(list, controller);
     params = merge(queryParams, params);
     params.offset = getWithDefault(controller, 'offset', offset);

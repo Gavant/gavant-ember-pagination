@@ -7,9 +7,8 @@ import { reject } from 'rsvp';
 import { A } from '@ember/array';
 import { task } from 'ember-concurrency';
 import { math, divide, string, bool } from 'ember-awesome-macros';
-import QueryParams from 'glasses/mixins/query-params';
 
-export default Mixin.create(QueryParams, {
+export default Mixin.create({
     router: service(),
     loadingBar: service(),
     sort: A(),
