@@ -1,9 +1,8 @@
 import DS from 'ember-data';
 import { assert } from '@ember/debug';
 import { PaginationController, buildQueryParams } from '../utils/query-params';
-import { Route } from '@ember/routing';
+import Route from '@ember/routing/route';
 
-type ConcreteSubclass<T> = new(...args: any[]) => T;
 export default function routePagination<T extends ConcreteSubclass<Route>>(RouteSubclass: T) {
     class PaginationRoute extends RouteSubclass {
         setupController(controller: PaginationController, model: any) {
@@ -18,8 +17,12 @@ export default function routePagination<T extends ConcreteSubclass<Route>>(Route
         }
 
         getControllerParams() {
-            const routeName = this.routeName as never;
-            const controller = this.controllerFor(routeName);
+            // const routeName = this.routeName as never;
+            // Use `any` here because we aren't actually able to check that the
+            // `routeName` here is a valid controller name against a registry:
+            // we only know that it is a string.
+            const controller = this.controllerFor(this.routeName as never);
+            // const controller = this.controllerFor(routeName);
             return buildQueryParams(controller);
         }
 

@@ -17,8 +17,6 @@ enum sortDirection {
     descending = "desc"
 }
 
-type ConcreteSubclass<T> = new(...args: any[]) => T;
-
 export default function controllerPagination<T extends ConcreteSubclass<Controller>>(ControllerSubclass: T) {
     class PaginationController extends ControllerSubclass {
         [key: string]: any;
