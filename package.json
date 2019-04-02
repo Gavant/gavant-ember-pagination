@@ -23,7 +23,6 @@
     "postpublish": "ember ts:clean"
   },
   "dependencies": {
-    "@types/ember-data": "^3.1.7",
     "ember-cli-babel": "^7.1.2",
     "ember-cli-typescript": "^2.0.0"
   },
@@ -34,6 +33,7 @@
     "@types/ember-test-helpers": "^1.0.5",
     "@types/ember-testing-helpers": "^0.0.3",
     "@types/ember__test-helpers": "^0.7.8",
+    "@types/ember-data": "^3.1.7",
     "@types/qunit": "^2.5.4",
     "@types/rsvp": "^4.0.2",
     "broccoli-asset-rev": "^2.7.0",
@@ -57,7 +57,7 @@
     "ember-maybe-import-regenerator": "^0.1.6",
     "ember-qunit": "^3.4.1",
     "ember-resolver": "^5.0.1",
-    "ember-source": "https://s3.amazonaws.com/builds.emberjs.com/canary/shas/eb34eed3bcd8ea9d8f863538063d1ac6ff5e00e9.tgz",
+    "ember-source": "^3.8.0",
     "ember-source-channel-url": "^1.1.0",
     "ember-try": "^1.0.0",
     "eslint-plugin-ember": "^5.2.0",
