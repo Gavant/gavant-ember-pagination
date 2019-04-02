@@ -5,7 +5,7 @@ import { divide, bool } from 'ember-awesome-macros';
 import match from 'ember-awesome-macros/string/match';
 import ceil from 'ember-awesome-macros/math/ceil';
 import { task } from 'ember-concurrency';
-import { RouteParams, buildQueryParams } from '../utils/query-params';
+import { RouteParams, buildQueryParams } from 'gavant-pagination/utils/query-params';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';

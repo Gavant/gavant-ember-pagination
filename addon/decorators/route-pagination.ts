@@ -1,6 +1,6 @@
 import DS from 'ember-data';
 import { assert } from '@ember/debug';
-import { PaginationController, buildQueryParams } from '../utils/query-params';
+import { PaginationController, buildQueryParams } from 'gavant-pagination/utils/query-params';
 // import Route from '@ember/routing/route';
 
 export default function routePagination<T extends ConcreteSubclass<any>>(RouteSubclass: T) {
