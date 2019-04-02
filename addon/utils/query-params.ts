@@ -5,7 +5,7 @@ import { merge } from '@ember/polyfills';
 import Controller from '@ember/controller';
 import moment from 'moment';
 
-interface RouteParams {
+export interface RouteParams {
     offset: number;
     limit: number;
     sort: string[];
