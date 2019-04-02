@@ -1,9 +1,9 @@
 import DS from 'ember-data';
 import { assert } from '@ember/debug';
 import { PaginationController, buildQueryParams } from '../utils/query-params';
-import Route from '@ember/routing/route';
+// import Route from '@ember/routing/route';
 
-export default function routePagination<T extends ConcreteSubclass<Route>>(RouteSubclass: T) {
+export default function routePagination<T extends ConcreteSubclass<any>>(RouteSubclass: T) {
     class PaginationRoute extends RouteSubclass {
         setupController(controller: PaginationController, model: any) {
             assert('Model is not an instanceof DS.AdapterPopulatedRecordArray. In order to use the RoutePaginationMixin, the model returned must be an instance of DS.AdapterPopulatedRecordArray which comes from using store.query', model instanceof DS.AdapterPopulatedRecordArray);

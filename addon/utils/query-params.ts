@@ -2,7 +2,7 @@ import { get, set, getWithDefault } from '@ember/object';
 import { isArray } from '@ember/array';
 import { isEmpty } from '@ember/utils';
 import { merge } from '@ember/polyfills';
-import Controller from '@ember/controller';
+// import Controller from '@ember/controller';
 import moment from 'moment';
 
 export interface RouteParams {
@@ -11,7 +11,7 @@ export interface RouteParams {
     sort: string[];
 }
 
-export interface PaginationController extends Controller {
+export interface PaginationController {
     offset: number;
     limit: number;
     sort: string[];

@@ -1,4 +1,4 @@
-import Controller from '@ember/controller';
+// import Controller from '@ember/controller';
 import DS from 'ember-data';
 import { readOnly, or } from '@ember/object/computed';
 import { divide, bool } from 'ember-awesome-macros';
@@ -17,7 +17,7 @@ enum sortDirection {
     descending = "desc"
 }
 
-export default function controllerPagination<T extends ConcreteSubclass<Controller>>(ControllerSubclass: T) {
+export default function controllerPagination<T extends ConcreteSubclass<any>>(ControllerSubclass: T) {
     class PaginationController extends ControllerSubclass {
         [key: string]: any;
         sort: NativeArray<any> = A();
