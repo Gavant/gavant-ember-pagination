@@ -19,6 +19,11 @@ export interface PaginationController {
     [key: string]: any;
 }
 
+export enum sortDirection {
+    ascending = "asc",
+    descending = "desc"
+}
+
 /**
  * Builds the query params to send to the server by taking the controller, route params, and paging data(`offset` & `limit`)
  * @param controller The pagination controller instance

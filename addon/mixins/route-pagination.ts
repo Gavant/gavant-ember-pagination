@@ -2,11 +2,10 @@ import Mixin from '@ember/object/mixin';
 import { get, set, setProperties } from '@ember/object';
 import { assert } from '@ember/debug';
 import DS from 'ember-data';
+import { PaginationController, buildQueryParams } from 'gavant-pagination/utils/query-params';
 
 export default Mixin.create({
-    shoeboxRouteEnabled: false,
-
-    setupController(controller, model) {
+    setupController(controller: PaginationController, model: any) {
         assert('Model is not an instanceof DS.AdapterPopulatedRecordArray. In order to use the RoutePaginationMixin, the model returned must be an instance of DS.AdapterPopulatedRecordArray which comes from using store.query', model instanceof DS.AdapterPopulatedRecordArray);
         setProperties(controller, {
             modelName: get(model, 'type.modelName'),
@@ -18,13 +17,12 @@ export default Mixin.create({
         this._super(controller, model);
     },
 
-    getControllerParams() {
-        const routeName = this.routeName;
+    getControllerParams(this: PaginationController, routeName = this.routeName): any {
         const controller = this.controllerFor(routeName);
-        return this.buildQueryParams(controller);
+        return buildQueryParams(controller);
     },
 
-    resetController(controller, isExiting) {
+    resetController(controller: PaginationController, isExiting: boolean) {
         this._super.apply(this, arguments);
 
         if (isExiting) {

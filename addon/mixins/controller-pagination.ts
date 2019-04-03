@@ -1,12 +1,11 @@
 import Mixin from '@ember/object/mixin';
 import { inject as service } from '@ember/service';
-import { get, set, setProperties } from '@ember/object';
+import { get, set, setProperties, computed } from '@ember/object';
 import { readOnly, or } from '@ember/object/computed';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
-import { math, divide, string, bool } from 'ember-awesome-macros';
-import { buildQueryParams } from 'gavant-pagination/utils/query-params';
+import { buildQueryParams, PaginationController, RouteParams, sortDirection } from 'gavant-pagination/utils/query-params';
 
 export default Mixin.create({
     router: service(),
@@ -16,13 +15,17 @@ export default Mixin.create({
     limit: 10,
     isLoadingPage: false,
 
-    isLoadingRoute: bool(string.match('router.currentRouteName', /loading$/)),
-    isLoadingModels: or('loadModelsTask.isRunning', 'isLoadingRoute'),
+    isLoadingRoute: computed('router.currentRouteName', function() {
+         return get(this, 'router.currentRouteName').match(/loading$/);
+    }),
+    isLoadingModels: or('isLoadingPage', 'isLoadingRoute'),
     offset: readOnly('model.length'),
-    pagesLoaded: math.ceil(divide('model.length', 'limit')),
+    pagesLoaded: computed('model.length', 'limit', function() {
+         return Math.ceil(get(this, 'model.length') / get(this, 'limit'));
+    }),
 
-    async _loadModels(reset, params) {
-        this.isLoadingPage = true;
+    async _loadModels(this: PaginationController, reset: boolean, params: RouteParams | undefined) {
+        set(this, 'isLoadingPage', true);
         if(reset) {
             this.clearModels();
         }
@@ -44,7 +47,7 @@ export default Mixin.create({
         } catch(errors) {
             reject(errors);
         }
-
+        set(this, 'isLoadingPage', false);
         return models;
     },
 
@@ -72,12 +75,12 @@ export default Mixin.create({
 
     //override this method if more complex logic is necessary to retrieve the records
     //it should return a promise, which resolves to an array-like object (such as a DS.RecordArray)
-    fetchModels(queryParams) {
+    fetchModels(this: PaginationController, queryParams: any) {
         const modelName = get(this, 'modelName');
         return get(this, 'store').query(modelName, queryParams);
     },
 
-    loadModels(reset, params) {
+    loadModels(this: PaginationController, reset: boolean, params: RouteParams) {
         if (!get(this, 'isLoadingPage')) {
             return this._loadModels(reset, params);
         } else {
@@ -85,19 +88,19 @@ export default Mixin.create({
         }
     },
 
-    clearModels() {
+    clearModels(this: PaginationController) {
         set(this, 'model', A());
     },
 
-    reloadModels() {
+    reloadModels(this: PaginationController) {
         return this.loadModels(true);
     },
 
-    loadMoreModels() {
+    loadMoreModels(this: PaginationController) {
         return this.loadModels();
     },
 
-    async removeModel(row) {
+    async removeModel(this: PaginationController, row: any) {
         try {
             let model = get(row, 'content');
             let result = await tryInvoke(model, 'destroyRecord');
@@ -108,7 +111,7 @@ export default Mixin.create({
         }
     },
 
-    changeSorting(sort, dir, isSorted) {
+    changeSorting(this: PaginationController, sort: string[], dir: sortDirection, isSorted: boolean) {
         const sorting = get(this, 'sort');
         const sortedValue = `${dir === "desc" ? '-' : ''}${sort}`;
         const oppositeSortedValue = `${dir === "asc" ? '-' : ''}${sort}`;
@@ -126,12 +129,12 @@ export default Mixin.create({
         return this.filterModels();
     },
 
-    filterModels() {
+    filterModels(this: PaginationController) {
         return this.loadModels(true);
     },
 
-    clearFilters() {
-        get(this, 'serverQueryParams').forEach((param) => set(this, param, null));
+    clearFilters(this: PaginationController) {
+        get(this, 'serverQueryParams').forEach((param: any) => set(this, param, null));
         return this.filterModels();
     },
 
@@ -140,30 +143,30 @@ export default Mixin.create({
     },
 
     actions: {
-        loadMoreModels() {
+        loadMoreModels(this: PaginationController) {
             return this.loadMoreModels();
         },
 
-        reloadModels() {
+        reloadModels(this: PaginationController) {
             return this.reloadModels();
         },
 
-        removeModel(row) {
+        removeModel(this: PaginationController, row: any) {
             return this.removeModel(row);
         },
 
-        clearModels() {
+        clearModels(this: PaginationController) {
             this.clearModels();
         },
 
-        filter() {
+        filter(this: PaginationController) {
             return this.filterModels();
         },
 
-        changeSorting(sort, dir, isSorted) {
+        changeSorting(this: PaginationController, sort: string[], dir: sortDirection, isSorted: boolean) {
             return this.changeSorting(sort, dir, isSorted);
         },
-        clearFilters() {
+        clearFilters(this: PaginationController) {
             return this.clearFilters();
         }
     }

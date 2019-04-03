@@ -1,5 +1,5 @@
 import DS from 'ember-data';
-import { RouteParams, buildQueryParams } from 'gavant-pagination/utils/query-params';
+import { RouteParams, buildQueryParams, sortDirection } from 'gavant-pagination/utils/query-params';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
@@ -8,11 +8,6 @@ import { action, computed } from '@ember-decorators/object';
 import { readOnly, or } from '@ember-decorators/object/computed';
 import { inject as service } from '@ember-decorators/service';
 import Router from '@ember/routing/router-service';
-
-export enum sortDirection {
-    ascending = "asc",
-    descending = "desc"
-}
 
 /**
  * Adds functionality to `setupController` / `resetController`. Be sure to call `super` in the respective methods to ensure this runs
@@ -30,7 +25,7 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
         serverQueryParams: any;
         isLoadingPage = false;
 
-        @or('loadModelsTask.isRunning', 'isLoadingRoute') isLoadingModels!: boolean;
+        @or('isLoadingPage', 'isLoadingRoute') isLoadingModels!: boolean;
         @readOnly('model.length') offset: number | undefined;
 
         @computed('router.currentRouteName')
@@ -44,7 +39,7 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
         }
 
         async _loadModels(this: PaginationController, reset: boolean, params: RouteParams | undefined) {
-            this.isLoadingPage = true;
+            this.set('isLoadingPage', true);
             if(reset) {
                 this.clearModels();
             }
@@ -58,14 +53,14 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
                 models = result.toArray();
 
                 this.metadata = result.meta;
-                this.hasMore = models.length >= limit;
+                this.set('hasMore', models.length >= limit);
 
                 tryInvoke(this.model, 'pushObjects', [models]);
             } catch(errors) {
                 reject(errors);
             }
 
-            this.isLoadingPage = false;
+            this.set('isLoadingPage', false);
             return models;
         }
 
