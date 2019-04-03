@@ -5,8 +5,8 @@ import { readOnly, or } from '@ember/object/computed';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
-import { task } from 'ember-concurrency';
 import { math, divide, string, bool } from 'ember-awesome-macros';
+import { buildQueryParams } from 'gavant-pagination/utils/query-params';
 
 export default Mixin.create({
     router: service(),
@@ -14,33 +14,61 @@ export default Mixin.create({
     sort: A(),
     hasMore: true,
     limit: 10,
+    isLoadingPage: false,
 
     isLoadingRoute: bool(string.match('router.currentRouteName', /loading$/)),
     isLoadingModels: or('loadModelsTask.isRunning', 'isLoadingRoute'),
     offset: readOnly('model.length'),
     pagesLoaded: math.ceil(divide('model.length', 'limit')),
 
-    loadModelsTask: task(function * (reset, params) {
-        get(this, 'loadingBar').start();
+    async _loadModels(reset, params) {
+        this.isLoadingPage = true;
         if(reset) {
             this.clearModels();
         }
 
         const offset = get(this, 'offset');
         const limit = get(this, 'limit');
-        const queryParams = this.buildQueryParams(this, params, offset, limit);
-        const result = yield this.fetchModels(queryParams);
-        const models = result.toArray();
+        const queryParams = buildQueryParams(this, params, offset, limit);
+        let models = [];
+        try {
+            const result = await this.fetchModels(queryParams);
+            models = result.toArray();
 
-        setProperties(this, {
-            metadata: get(result, 'meta'),
-            hasMore: get(models, 'length') >= limit
-        });
+            setProperties(this, {
+                metadata: get(result, 'meta'),
+                hasMore: get(models, 'length') >= limit
+            });
 
-        tryInvoke(get(this, 'model'), 'pushObjects', [models]);
-        get(this, 'loadingBar').stop();
+            tryInvoke(get(this, 'model'), 'pushObjects', [models]);
+        } catch(errors) {
+            reject(errors);
+        }
+
         return models;
-    }).restartable(),
+    },
+
+    // loadModelsTask: task(function * (reset, params) {
+    //     get(this, 'loadingBar').start();
+    //     if(reset) {
+    //         this.clearModels();
+    //     }
+    //
+    //     const offset = get(this, 'offset');
+    //     const limit = get(this, 'limit');
+    //     const queryParams = this.buildQueryParams(this, params, offset, limit);
+    //     const result = yield this.fetchModels(queryParams);
+    //     const models = result.toArray();
+    //
+    //     setProperties(this, {
+    //         metadata: get(result, 'meta'),
+    //         hasMore: get(models, 'length') >= limit
+    //     });
+    //
+    //     tryInvoke(get(this, 'model'), 'pushObjects', [models]);
+    //     get(this, 'loadingBar').stop();
+    //     return models;
+    // }).restartable(),
 
     //override this method if more complex logic is necessary to retrieve the records
     //it should return a promise, which resolves to an array-like object (such as a DS.RecordArray)
@@ -50,7 +78,11 @@ export default Mixin.create({
     },
 
     loadModels(reset, params) {
-        return get(this, 'loadModelsTask').perform(reset, params);
+        if (!get(this, 'isLoadingPage')) {
+            return this._loadModels(reset, params);
+        } else {
+            return;
+        }
     },
 
     clearModels() {
