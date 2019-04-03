@@ -1,6 +1,4 @@
-// import Controller from '@ember/controller';
 import DS from 'ember-data';
-import { task } from 'ember-concurrency';
 import { RouteParams, buildQueryParams } from 'gavant-pagination/utils/query-params';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
@@ -9,6 +7,7 @@ import NativeArray from '@ember/array/-private/native-array';
 import { action, computed } from '@ember-decorators/object';
 import { readOnly, or } from '@ember-decorators/object/computed';
 import { inject as service } from '@ember-decorators/service';
+import Router from '@ember/routing/router-service';
 
 export enum sortDirection {
     ascending = "asc",
@@ -21,7 +20,7 @@ export enum sortDirection {
  */
 export default function controllerPagination<T extends ConcreteSubclass<any>>(ControllerSubclass: T) {
     class PaginationController extends ControllerSubclass {
-        @service router!: any;
+        @service router!: Router;
         [key: string]: any;
         sort: NativeArray<any> = A();
         hasMore: boolean = true;
@@ -29,6 +28,7 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
         modelName: string = '';
         metadata: any;
         serverQueryParams: any;
+        isLoadingPage = false;
 
         @or('loadModelsTask.isRunning', 'isLoadingRoute') isLoadingModels!: boolean;
         @readOnly('model.length') offset: number | undefined;
@@ -43,8 +43,8 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
             return Math.ceil(this.model.length / this.limit);
         }
 
-        loadModelsTask: any = task(function * (this: PaginationController, reset: boolean, params: RouteParams) {
-            // get(this, 'loadingBar').start();
+        async _loadModels(this: PaginationController, reset: boolean, params: RouteParams | undefined) {
+            this.isLoadingPage = true;
             if(reset) {
                 this.clearModels();
             }
@@ -52,16 +52,42 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
             const offset = this.offset;
             const limit = this.limit;
             const queryParams = buildQueryParams(this, params, offset, limit);
-            const result = yield this.fetchModels(queryParams);
-            const models = result.toArray();
+            let models = [];
+            try {
+                const result = await this.fetchModels(queryParams);
+                models = result.toArray();
 
-            this.metadata = result.meta;
-            this.hasMore = models.length >= limit;
+                this.metadata = result.meta;
+                this.hasMore = models.length >= limit;
 
-            tryInvoke(this.model, 'pushObjects', [models]);
-            // get(this, 'loadingBar').stop();
+                tryInvoke(this.model, 'pushObjects', [models]);
+            } catch(errors) {
+                reject(errors);
+            }
+
+            this.isLoadingPage = false;
             return models;
-        }).restartable();
+        }
+
+        // loadModelsTask: any = task(function * (this: PaginationController, reset: boolean, params: RouteParams) {
+        //     // get(this, 'loadingBar').start();
+        //     if(reset) {
+        //         this.clearModels();
+        //     }
+        //
+        //     const offset = this.offset;
+        //     const limit = this.limit;
+        //     const queryParams = buildQueryParams(this, params, offset, limit);
+        //     const result = yield this.fetchModels(queryParams);
+        //     const models = result.toArray();
+        //
+        //     this.metadata = result.meta;
+        //     this.hasMore = models.length >= limit;
+        //
+        //     tryInvoke(this.model, 'pushObjects', [models]);
+        //     // get(this, 'loadingBar').stop();
+        //     return models;
+        // }).restartable();
 
         // @task(function * (this: PaginationController, reset: boolean, params: RouteParams) {
         //     // get(this, 'loadingBar').start();
@@ -88,8 +114,12 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
             return this.store.query(modelName, queryParams);
         }
 
-        loadModels(reset?: boolean, params?: RouteParams) {
-            return this.loadModelsTask.perform(reset, params);
+        loadModels(reset: boolean = false, params?: RouteParams) {
+            if (!this.isLoadingPage) {
+                return this._loadModels(reset, params);
+            } else {
+                return;
+            }
         }
 
         filterModels() {
