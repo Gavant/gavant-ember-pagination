@@ -12,7 +12,7 @@ import { A } from '@ember/array';
 import NativeArray from '@ember/array/-private/native-array';
 import { action } from '@ember-decorators/object';
 
-enum sortDirection {
+export enum sortDirection {
     ascending = "asc",
     descending = "desc"
 }
