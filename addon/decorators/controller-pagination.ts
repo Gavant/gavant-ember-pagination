@@ -32,7 +32,7 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
         offset: any = readOnly('model.length');
         pagesLoaded: any = ceil(divide('model.length', 'limit'));
 
-        @task(function * (this: PaginationController, reset: boolean, params: RouteParams) {
+        loadModelsTask: any = task(function * (this: PaginationController, reset: boolean, params: RouteParams) {
             // get(this, 'loadingBar').start();
             if(reset) {
                 this.clearModels();
@@ -50,7 +50,27 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
             tryInvoke(this.model, 'pushObjects', [models]);
             // get(this, 'loadingBar').stop();
             return models;
-        }).restartable() loadModelsTask: any;
+        }).restartable();
+
+        // @task(function * (this: PaginationController, reset: boolean, params: RouteParams) {
+        //     // get(this, 'loadingBar').start();
+        //     if(reset) {
+        //         this.clearModels();
+        //     }
+        //
+        //     const offset = this.offset;
+        //     const limit = this.limit;
+        //     const queryParams = buildQueryParams(this, params, offset, limit);
+        //     const result = yield this.fetchModels(queryParams);
+        //     const models = result.toArray();
+        //
+        //     this.metadata = result.meta;
+        //     this.hasMore = models.length >= limit;
+        //
+        //     tryInvoke(this.model, 'pushObjects', [models]);
+        //     // get(this, 'loadingBar').stop();
+        //     return models;
+        // }).restartable() loadModelsTask: any;
 
         fetchModels(queryParams: any) {
             const modelName = this.modelName as never;
