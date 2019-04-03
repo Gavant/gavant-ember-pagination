@@ -3,7 +3,8 @@ import { assert } from '@ember/debug';
 import { PaginationController, buildQueryParams } from 'gavant-pagination/utils/query-params';
 
 /**
- * @param RouteSubclass  Pass in the route that you want to add here.
+ * Adds functionality to `setupController` / `resetController`. Be sure to call `super` in the respective methods to ensure this runs
+ * @param Route The route you want the functionality to be added on to
  */
 export default function routePagination<T extends ConcreteSubclass<any>>(RouteSubclass: T) {
     class PaginationRoute extends RouteSubclass {

@@ -17,6 +17,10 @@ export enum sortDirection {
     descending = "desc"
 }
 
+/**
+ * Adds functionality to `setupController` / `resetController`. Be sure to call `super` in the respective methods to ensure this runs
+ * @param Controller - The controller you want the functionality to be added on to
+ */
 export default function controllerPagination<T extends ConcreteSubclass<any>>(ControllerSubclass: T) {
     class PaginationController extends ControllerSubclass {
         [key: string]: any;

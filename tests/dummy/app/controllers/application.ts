@@ -3,6 +3,7 @@ import ControllerPagination from 'gavant-pagination/decorators/controller-pagina
 
 export default class Application extends ControllerPagination(Controller) {
   // normal class body definition here
+
 }
 
 // DO NOT DELETE: this is how TypeScript knows how to look up your controllers.
