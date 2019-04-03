@@ -8,6 +8,7 @@ import { A } from '@ember/array';
 import NativeArray from '@ember/array/-private/native-array';
 import { action, computed } from '@ember-decorators/object';
 import { readOnly, or } from '@ember-decorators/object/computed';
+import { inject as service } from '@ember-decorators/service';
 
 export enum sortDirection {
     ascending = "asc",
@@ -20,6 +21,7 @@ export enum sortDirection {
  */
 export default function controllerPagination<T extends ConcreteSubclass<any>>(ControllerSubclass: T) {
     class PaginationController extends ControllerSubclass {
+        @service router!: any;
         [key: string]: any;
         sort: NativeArray<any> = A();
         hasMore: boolean = true;
