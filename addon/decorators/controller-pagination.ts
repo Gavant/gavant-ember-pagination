@@ -10,7 +10,7 @@ import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
 import NativeArray from '@ember/array/-private/native-array';
-import { action } from '@ember/object';
+import { action } from '@ember-decorators/object';
 
 enum sortDirection {
     ascending = "asc",
