@@ -3,7 +3,8 @@ import RoutePagination from 'gavant-pagination/decorators/route-pagination';
 
 export default class Application extends RoutePagination(Route) {
     model() {
-        return this.store.query('post', { limit: 100 });
+        const params = this.getControllerParams();
+        return this.store.query('post', params);
     }
 
     setupController(controller: any, model: any) {

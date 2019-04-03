@@ -1,6 +1,5 @@
 // import Controller from '@ember/controller';
 import DS from 'ember-data';
-import { readOnly, or } from '@ember/object/computed';
 import { divide, bool } from 'ember-awesome-macros';
 import match from 'ember-awesome-macros/string/match';
 import ceil from 'ember-awesome-macros/math/ceil';
@@ -10,7 +9,8 @@ import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
 import NativeArray from '@ember/array/-private/native-array';
-import { action } from '@ember-decorators/object';
+import { action, computed } from '@ember-decorators/object';
+import { readOnly, or } from '@ember-decorators/object/computed';
 
 export enum sortDirection {
     ascending = "asc",
@@ -31,10 +31,18 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
         metadata: any;
         serverQueryParams: any;
 
-        isLoadingRoute: boolean = bool(match('router.currentRouteName', /loading$/));
-        isLoadingModels: any = or('loadModelsTask.isRunning', 'isLoadingRoute');
-        offset: any = readOnly('model.length');
-        pagesLoaded: any = ceil(divide('model.length', 'limit'));
+        @or('loadModelsTask.isRunning', 'isLoadingRoute') isLoadingModels!: boolean;
+        @readOnly('model.length') offset: number | undefined;
+
+        @computed('router.currentRouteName')
+        get isLoadingRoute() {
+            return this.router.currentRouteName.match(/loading$/);
+        }
+
+        @computed('model.length', 'limit')
+        get pagesLoaded() {
+            return Math.ceil(this.model.length / this.limit);
+        }
 
         loadModelsTask: any = task(function * (this: PaginationController, reset: boolean, params: RouteParams) {
             // get(this, 'loadingBar').start();

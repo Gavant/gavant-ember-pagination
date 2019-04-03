@@ -18,13 +18,18 @@ export default function routePagination<T extends ConcreteSubclass<any>>(RouteSu
             const modelForController = model.toArray();
             super.setupController(controller, modelForController);
         }
-
-        getControllerParams() {
+        /**
+         * Get controller params for a route
+         * @param routeName The name of the route you want to get the controller parameters for.
+         * Defaults to current route if nothing is passed in
+         * Should be passed in using `/` seperators i.e. `accounts/index`
+         */
+        getControllerParams(routeName: string = this.routeName) {
             // const routeName = this.routeName as never;
             // Use `any` here because we aren't actually able to check that the
             // `routeName` here is a valid controller name against a registry:
             // we only know that it is a string.
-            const controller = this.controllerFor(this.routeName as never);
+            const controller = this.controllerFor(routeName as never);
             // const controller = this.controllerFor(routeName);
             return buildQueryParams(controller);
         }

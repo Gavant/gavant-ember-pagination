@@ -6,13 +6,13 @@ import { merge } from '@ember/polyfills';
 import moment from 'moment';
 
 export interface RouteParams {
-    offset: number;
+    offset: number | undefined;
     limit: number;
     sort: string[];
 }
 
 export interface PaginationController {
-    offset: number;
+    offset: number | undefined;
     limit: number;
     sort: string[];
     modelName: string;
