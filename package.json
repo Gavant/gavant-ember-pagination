@@ -1,6 +1,6 @@
 {
   "name": "gavant-pagination",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "The default blueprint for ember-cli addons.",
   "keywords": [
     "ember-addon"
@@ -23,6 +23,7 @@
     "postpublish": "ember ts:clean"
   },
   "dependencies": {
+    "ember-decorators": "^3.0.0",
     "ember-cli-babel": "^7.1.2",
     "ember-cli-typescript": "^2.0.0"
   },

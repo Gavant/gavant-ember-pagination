@@ -602,6 +602,57 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
+"@ember-decorators/component@^3.1.5":
+  version "3.1.5"
+  resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/@ember-decorators/component/-/component-3.1.5.tgz#65c0f62a3dcf3434178d454031aabea33792ccbb"
+  integrity sha1-ZcD2Kj3PNDQXjUVAMaq+ozeSzLs=
+  dependencies:
+    "@ember-decorators/utils" "^3.1.5"
+    ember-cli-babel "^7.1.3"
+
+"@ember-decorators/controller@^3.1.5":
+  version "3.1.5"
+  resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/@ember-decorators/controller/-/controller-3.1.5.tgz#300c40b98aae0dfb21b6f9a882278ec47f919e4d"
+  integrity sha1-MAxAuYquDfshtvmogieOxH+Rnk0=
+  dependencies:
+    "@ember-decorators/utils" "^3.1.5"
+    ember-cli-babel "^7.1.3"
+
+"@ember-decorators/data@^3.1.5":
+  version "3.1.5"
+  resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/@ember-decorators/data/-/data-3.1.5.tgz#84494a8b5d55e9328789f37d84dd52e2f4d51cd3"
+  integrity sha1-hElKi11V6TKHifN9hN1S4vTVHNM=
+  dependencies:
+    "@ember-decorators/utils" "^3.1.5"
+    ember-cli-babel "^7.1.3"
+
+"@ember-decorators/object@^3.1.5":
+  version "3.1.5"
+  resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/@ember-decorators/object/-/object-3.1.5.tgz#51de623b99edf4ee116b62f775fa57a270af5b52"
+  integrity sha1-Ud5iO5nt9O4Ra2L3dfpXonCvW1I=
+  dependencies:
+    "@ember-decorators/utils" "^3.1.5"
+    ember-cli-babel "^7.1.3"
+
+"@ember-decorators/service@^3.1.5":
+  version "3.1.5"
+  resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/@ember-decorators/service/-/service-3.1.5.tgz#ed5ab1fdb3d59659b3c4911797761f79958550f9"
+  integrity sha1-7Vqx/bPVllmzxJEXl3YfeZWFUPk=
+  dependencies:
+    "@ember-decorators/utils" "^3.1.5"
+    ember-cli-babel "^7.1.3"
+
+"@ember-decorators/utils@^3.1.5":
+  version "3.1.5"
+  resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/@ember-decorators/utils/-/utils-3.1.5.tgz#8f692582329a88553192e998012c7ca59e547c37"
+  integrity sha1-j2klgjKaiFUxkumYASx8pZ5UfDc=
+  dependencies:
+    babel-plugin-debug-macros "^0.1.11"
+    ember-cli-babel "^7.1.3"
+    ember-cli-version-checker "^2.1.2"
+    ember-compatibility-helpers "^1.1.2"
+    semver "^5.6.0"
+
 "@ember/optional-features@^0.6.3":
   version "0.6.4"
   resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/@ember/optional-features/-/optional-features-0.6.4.tgz#8199f853c1781234fcb1f05090cddd0b822bff69"
@@ -1300,9 +1351,10 @@ babel-plugin-check-es2015-constants@^6.22.0:
   dependencies:
     babel-runtime "^6.22.0"
 
-babel-plugin-debug-macros@^0.1.10:
+babel-plugin-debug-macros@^0.1.10, babel-plugin-debug-macros@^0.1.11:
   version "0.1.11"
   resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/babel-plugin-debug-macros/-/babel-plugin-debug-macros-0.1.11.tgz#6c562bf561fccd406ce14ab04f42c218cf956605"
+  integrity sha1-bFYr9WH8zUBs4UqwT0LCGM+VZgU=
   dependencies:
     semver "^5.3.0"
 
@@ -2925,9 +2977,10 @@ ember-cli-babel@^6.0.0-beta.4, ember-cli-babel@^6.0.0-beta.7, ember-cli-babel@^6
     ember-cli-version-checker "^2.1.2"
     semver "^5.5.0"
 
-ember-cli-babel@^7.0.0, ember-cli-babel@^7.1.2, ember-cli-babel@^7.1.4, ember-cli-babel@^7.4.2:
+ember-cli-babel@^7.0.0, ember-cli-babel@^7.1.2, ember-cli-babel@^7.1.3, ember-cli-babel@^7.1.4, ember-cli-babel@^7.4.2:
   version "7.7.3"
   resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/ember-cli-babel/-/ember-cli-babel-7.7.3.tgz#f94709f6727583d18685ca6773a995877b87b8a0"
+  integrity sha1-+UcJ9nJ1g9GGhcpnc6mVh3uHuKA=
   dependencies:
     "@babel/core" "^7.0.0"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
@@ -3253,9 +3306,10 @@ ember-cli@~3.8.1:
     watch-detector "^0.1.0"
     yam "^1.0.0"
 
-ember-compatibility-helpers@^1.1.1, ember-compatibility-helpers@^1.2.0:
+ember-compatibility-helpers@^1.1.1, ember-compatibility-helpers@^1.1.2, ember-compatibility-helpers@^1.2.0:
   version "1.2.0"
   resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/ember-compatibility-helpers/-/ember-compatibility-helpers-1.2.0.tgz#feee16c5e9ef1b1f1e53903b241740ad4b01097e"
+  integrity sha1-/u4WxenvGx8eU5A7JBdArUsBCX4=
   dependencies:
     babel-plugin-debug-macros "^0.2.0"
     ember-cli-version-checker "^2.1.1"
@@ -3301,6 +3355,19 @@ ember-data@^3.8.0:
     resolve "^1.8.1"
     semver "^5.6.0"
     silent-error "^1.1.1"
+
+ember-decorators@^3.0.0:
+  version "3.1.5"
+  resolved "http://artifactory.gavant.com:8081/artifactory/api/npm/npm-virtual/ember-decorators/-/ember-decorators-3.1.5.tgz#4920982ac5546d5e72af3d8dcb66dd96e48c01a6"
+  integrity sha1-SSCYKsVUbV5yrz2Ny2bdluSMAaY=
+  dependencies:
+    "@ember-decorators/component" "^3.1.5"
+    "@ember-decorators/controller" "^3.1.5"
+    "@ember-decorators/data" "^3.1.5"
+    "@ember-decorators/object" "^3.1.5"
+    "@ember-decorators/service" "^3.1.5"
+    ember-cli-babel "^7.1.3"
+    semver "^5.5.0"
 
 ember-disable-prototype-extensions@^1.1.3:
   version "1.1.3"
