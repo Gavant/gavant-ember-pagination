@@ -5,7 +5,7 @@ import { readOnly, or } from '@ember/object/computed';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
-import { buildQueryParams, PaginationController, RouteParams, sortDirection } from 'gavant-pagination/utils/query-params';
+import { buildQueryParams, PaginationController, sortDirection } from 'gavant-pagination/utils/query-params';
 import DS from 'ember-data';
 
 export default Mixin.create({
@@ -25,7 +25,7 @@ export default Mixin.create({
          return Math.ceil(get(this, 'model.length') / get(this, 'limit'));
     }),
 
-    async _loadModels(this: PaginationController, reset: boolean, params: RouteParams | undefined) {
+    async _loadModels(this: PaginationController, reset: boolean) {
         set(this, 'isLoadingPage', true);
         if(reset) {
             this.clearModels();
@@ -33,7 +33,7 @@ export default Mixin.create({
 
         const offset = get(this, 'offset');
         const limit = get(this, 'limit');
-        const queryParams = buildQueryParams(this, params, offset, limit);
+        const queryParams = buildQueryParams(this, offset, limit);
         let models = [];
         try {
             const result = await this.fetchModels(queryParams);
@@ -87,12 +87,11 @@ export default Mixin.create({
     /**
      * Change the sorting and call `filterModels`. Will only load models if not currently making an API call
      * @param reset - Clear models
-     * @param params - Route params
      * @returns - an array of models
      */
-    loadModels(this: PaginationController, reset: boolean, params: RouteParams) {
+    loadModels(this: PaginationController, reset: boolean) {
         if (!get(this, 'isLoadingPage')) {
-            return this._loadModels(reset, params);
+            return this._loadModels(reset);
         } else {
             return [];
         }

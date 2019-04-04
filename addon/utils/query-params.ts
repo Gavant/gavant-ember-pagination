@@ -1,15 +1,7 @@
 import { get, set, getWithDefault } from '@ember/object';
 import { isArray } from '@ember/array';
 import { isEmpty } from '@ember/utils';
-import { merge } from '@ember/polyfills';
-// import Controller from '@ember/controller';
 import moment from 'moment';
-
-export interface RouteParams {
-    offset: number | undefined;
-    limit: number;
-    sort: string[];
-}
 
 export interface PaginationController {
     offset: number | undefined;
@@ -27,7 +19,6 @@ export enum sortDirection {
 /**
  * Builds the query params to send to the server by taking the controller, route params, and paging data(`offset` & `limit`)
  * @param controller - The pagination controller instance
- * @param routeParams - Route Params (`offset`, `limit`, `sort`)
  * @param offset - Offset provides a starting point for paging. i.e. offset of 0 and limit of 10 gives you the first 10 records. offset of 10 and limit of 10 gives the next 10
  * @param limit - How many records to ruturn for one api call
  * @param queryParamListName - The name of the query params you want to use to page on the server
@@ -35,18 +26,16 @@ export enum sortDirection {
  */
 export function buildQueryParams(
     controller: PaginationController,
-    routeParams: RouteParams,
     offset: number = 0,
     limit: number = 10,
     queryParamListName: string = 'serverQueryParams'
 ) {
-    let params = routeParams || {};
     let list: any = controller[queryParamListName];
     let queryParams = getParamsObject(list, controller);
-    params = merge(queryParams, params);
-    params.offset = getWithDefault(controller, 'offset', offset);
-    params.limit =  getWithDefault(controller, 'limit', limit);
-    return removeEmptyQueryParams(params);
+    queryParams.offset = getWithDefault(controller, 'offset', offset);
+    queryParams.limit =  getWithDefault(controller, 'limit', limit);
+    queryParams.sort = getWithDefault(controller, 'sort', []);
+    return removeEmptyQueryParams(queryParams);
 }
 
 /**

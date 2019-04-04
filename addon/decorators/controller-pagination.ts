@@ -1,5 +1,5 @@
 import DS from 'ember-data';
-import { RouteParams, buildQueryParams, sortDirection } from 'gavant-pagination/utils/query-params';
+import { buildQueryParams, sortDirection } from 'gavant-pagination/utils/query-params';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
@@ -38,7 +38,7 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
             return Math.ceil(this.model.length / this.limit);
         }
 
-        async _loadModels(this: PaginationController, reset: boolean, params: RouteParams | undefined) {
+        async _loadModels(this: PaginationController, reset: boolean) {
             this.set('isLoadingPage', true);
             if(reset) {
                 this.clearModels();
@@ -46,7 +46,7 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
 
             const offset = this.offset;
             const limit = this.limit;
-            const queryParams = buildQueryParams(this, params, offset, limit);
+            const queryParams = buildQueryParams(this, offset, limit);
             let models = [];
             try {
                 const result = await this.fetchModels(queryParams);
@@ -109,9 +109,9 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
             return this.store.query(modelName, queryParams);
         }
 
-        loadModels(reset: boolean = false, params?: RouteParams) {
+        loadModels(reset: boolean = false) {
             if (!this.isLoadingPage) {
-                return this._loadModels(reset, params);
+                return this._loadModels(reset);
             } else {
                 return;
             }
@@ -122,7 +122,7 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
         }
 
         clearSorting() {
-            this.sort = A();
+            this.set('sort', A());
         }
 
         @action
@@ -148,8 +148,7 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
 
         @action
         clearModels() {
-            this.model = A();
-            // set(this, 'model', A());
+            this.set('model', A());
         }
 
         @action
@@ -178,7 +177,7 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
 
         @action
         clearFilters() {
-            this.serverQueryParams.forEach((param: string) => this[param] = null);
+            this.serverQueryParams.forEach((param: string) => this.set(param, null));
             // get(this, 'serverQueryParams').forEach((param) => set(this, param, null));
             return this.filterModels();
         }
