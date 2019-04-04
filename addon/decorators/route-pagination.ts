@@ -4,7 +4,7 @@ import { PaginationController, buildQueryParams } from 'gavant-pagination/utils/
 
 /**
  * Adds functionality to `setupController` / `resetController`. Be sure to call `super` in the respective methods to ensure this runs
- * @param Route The route you want the functionality to be added on to
+ * @param route The route you want the functionality to be added on to
  */
 export default function routePagination<T extends ConcreteSubclass<any>>(RouteSubclass: T) {
     class PaginationRoute extends RouteSubclass {
@@ -19,10 +19,11 @@ export default function routePagination<T extends ConcreteSubclass<any>>(RouteSu
             super.setupController(controller, modelForController);
         }
         /**
-         * Get controller params for a route
+         * Get the controller params
          * @param routeName The name of the route you want to get the controller parameters for.
          * Defaults to current route if nothing is passed in
          * Should be passed in using `/` seperators i.e. `accounts/index`
+         * @returns - Controller query params
          */
         getControllerParams(routeName: string = this.routeName) {
             // const routeName = this.routeName as never;

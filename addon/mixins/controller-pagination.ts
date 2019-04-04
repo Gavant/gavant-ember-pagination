@@ -6,6 +6,7 @@ import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
 import { buildQueryParams, PaginationController, RouteParams, sortDirection } from 'gavant-pagination/utils/query-params';
+import DS from 'ember-data';
 
 export default Mixin.create({
     router: service(),
@@ -73,36 +74,60 @@ export default Mixin.create({
     //     return models;
     // }).restartable(),
 
-    //override this method if more complex logic is necessary to retrieve the records
-    //it should return a promise, which resolves to an array-like object (such as a DS.RecordArray)
+    /**
+     * Override this method if more complex logic is necessary to retrieve the records
+     * It should return a promise, which resolves to an array-like object (such as a DS.RecordArray)
+     * @returns - the result of `store.query`
+     */
     fetchModels(this: PaginationController, queryParams: any) {
         const modelName = get(this, 'modelName');
         return get(this, 'store').query(modelName, queryParams);
     },
 
+    /**
+     * Change the sorting and call `filterModels`. Will only load models if not currently making an API call
+     * @param reset - Clear models
+     * @param params - Route params
+     * @returns - an array of models
+     */
     loadModels(this: PaginationController, reset: boolean, params: RouteParams) {
         if (!get(this, 'isLoadingPage')) {
             return this._loadModels(reset, params);
         } else {
-            return;
+            return [];
         }
     },
 
+    /**
+     * Clear models
+     */
     clearModels(this: PaginationController) {
         set(this, 'model', A());
     },
 
+    /**
+     * Clear and Reload models
+     * @returns - an array of models
+     */
     reloadModels(this: PaginationController) {
         return this.loadModels(true);
     },
 
+    /**
+     * Load another page of models
+     * @returns - an array of models
+     */
     loadMoreModels(this: PaginationController) {
         return this.loadModels();
     },
 
-    async removeModel(this: PaginationController, row: any) {
+    /**
+     * Change the sorting and call `filterModels`
+     * @param model - A `DS.Model` record
+     * @returns - result of api call
+     */
+    async removeModel(this: PaginationController, model: DS.Model) {
         try {
-            let model = get(row, 'content');
             let result = await tryInvoke(model, 'destroyRecord');
             get(this, 'model').removeObject(model);
             return result;
@@ -111,6 +136,13 @@ export default Mixin.create({
         }
     },
 
+    /**
+     * Change the sorting and call `filterModels`
+     * @param sort - Array of strings
+     * @param dir - The direction of the sort i.e `asc` or `desc`
+     * @param isSorted - Is sorted
+     * @returns - an array of models
+     */
     changeSorting(this: PaginationController, sort: string[], dir: sortDirection, isSorted: boolean) {
         const sorting = get(this, 'sort');
         const sortedValue = `${dir === "desc" ? '-' : ''}${sort}`;
@@ -129,15 +161,26 @@ export default Mixin.create({
         return this.filterModels();
     },
 
+    /**
+     * Filter models
+     * @returns - an array of models
+     */
     filterModels(this: PaginationController) {
         return this.loadModels(true);
     },
 
+    /**
+     * Clears the filters and returns the updated model array
+     * @returns - an array of models
+     */
     clearFilters(this: PaginationController) {
         get(this, 'serverQueryParams').forEach((param: any) => set(this, param, null));
         return this.filterModels();
     },
 
+    /**
+     * Clears the sort array
+     */
     clearSorting() {
         set(this, 'sort', A());
     },
