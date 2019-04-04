@@ -35,7 +35,7 @@ export enum sortDirection {
  */
 export function buildQueryParams(
     controller: PaginationController,
-    routeParams: RouteParams = { offset: 0, limit: 10, sort: [] },
+    routeParams: RouteParams,
     offset: number = 0,
     limit: number = 10,
     queryParamListName: string = 'serverQueryParams'
