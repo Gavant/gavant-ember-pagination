@@ -1,5 +1,5 @@
 // import EmberObject from '@ember/object';
-// import ControllerPaginationMixin from 'gavant-pagination/mixins/controller-pagination';
+// import ControllerPaginationMixin from 'gavant-ember-pagination/mixins/controller-pagination';
 import { module, test } from 'qunit';
 
 module('Unit | Mixin | controller-pagination', function() {

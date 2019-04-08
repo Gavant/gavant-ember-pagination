@@ -1,5 +1,5 @@
 import Controller from '@ember/controller';
-import ControllerPagination from 'gavant-pagination/decorators/controller-pagination';
+import ControllerPagination from 'gavant-ember-pagination/decorators/controller-pagination';
 
 export default class Application extends ControllerPagination(Controller) {
   // normal class body definition here

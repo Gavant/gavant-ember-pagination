@@ -1,5 +1,5 @@
 import DS from 'ember-data';
-import { buildQueryParams, sortDirection } from 'gavant-pagination/utils/query-params';
+import { buildQueryParams, sortDirection } from 'gavant-ember-pagination/utils/query-params';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';

@@ -2,7 +2,7 @@ import Mixin from '@ember/object/mixin';
 import { get, set, setProperties } from '@ember/object';
 import { assert } from '@ember/debug';
 import DS from 'ember-data';
-import { PaginationController, buildQueryParams } from 'gavant-pagination/utils/query-params';
+import { PaginationController, buildQueryParams } from 'gavant-ember-pagination/utils/query-params';
 
 export default Mixin.create({
     /**

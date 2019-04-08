@@ -3,7 +3,7 @@
 ## Installation
 
 * `git clone <repository-url>`
-* `cd gavant-pagination`
+* `cd gavant-ember-pagination`
 * `npm install`
 
 ## Linting

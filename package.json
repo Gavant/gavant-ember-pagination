@@ -1,11 +1,11 @@
 {
-  "name": "gavant-pagination",
+  "name": "gavant-ember-pagination",
   "version": "0.1.2",
   "description": "The default blueprint for ember-cli addons.",
   "keywords": [
     "ember-addon"
   ],
-  "repository": "https://github.com/Gavant/gavant-pagination.git",
+  "repository": "https://github.com/Gavant/gavant-ember-pagination.git",
   "license": "MIT",
   "author": "",
   "directories": {
