@@ -1,5 +1,5 @@
 {
-  "name": "gavant-ember-pagination",
+  "name": "@gavant/ember-pagination",
   "version": "0.1.0",
   "description": "The default blueprint for ember-cli addons.",
   "keywords": [

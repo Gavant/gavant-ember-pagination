@@ -14,7 +14,7 @@ Installation
 ------------------------------------------------------------------------------
 
 ```
-ember install gavant-ember-pagination
+ember install @gavant/ember-pagination
 ```
 
 
