@@ -5,7 +5,7 @@ import { readOnly, or } from '@ember/object/computed';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
-import { buildQueryParams, PaginationController, sortDirection } from 'gavant-ember-pagination/utils/query-params';
+import { buildQueryParams, PaginationController, sortDirection } from '@gavant/ember-pagination/utils/query-params';
 import DS from 'ember-data';
 
 export default Mixin.create({

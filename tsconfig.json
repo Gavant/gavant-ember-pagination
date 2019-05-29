@@ -28,16 +28,16 @@
         "tests/dummy/app/*",
         "app/*"
       ],
-      "gavant-ember-pagination": [
+      "@gavant/ember-pagination": [
         "addon"
       ],
-      "gavant-ember-pagination/*": [
+      "@gavant/ember-pagination/*": [
         "addon/*"
       ],
-      "gavant-ember-pagination/test-support": [
+      "@gavant/ember-pagination/test-support": [
         "addon-test-support"
       ],
-      "gavant-ember-pagination/test-support/*": [
+      "@gavant/ember-pagination/test-support/*": [
         "addon-test-support/*"
       ],
       "*": [

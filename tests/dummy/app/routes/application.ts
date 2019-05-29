@@ -1,5 +1,5 @@
 import Route from '@ember/routing/route';
-import RoutePagination from 'gavant-ember-pagination/decorators/route-pagination';
+import RoutePagination from '@gavant/ember-pagination/decorators/route-pagination';
 
 export default class Application extends RoutePagination(Route) {
     model() {

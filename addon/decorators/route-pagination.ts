@@ -1,6 +1,6 @@
 import DS from 'ember-data';
 import { assert } from '@ember/debug';
-import { PaginationController, buildQueryParams } from 'gavant-ember-pagination/utils/query-params';
+import { PaginationController, buildQueryParams } from '@gavant/ember-pagination/utils/query-params';
 
 /**
  * Adds functionality to `setupController` / `resetController`. Be sure to call `super` in the respective methods to ensure this runs
