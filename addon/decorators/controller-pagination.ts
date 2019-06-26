@@ -1,5 +1,6 @@
 import DS from 'ember-data';
 import { buildQueryParams, sortDirection } from '@gavant/ember-pagination/utils/query-params';
+import { setProperties } from '@ember/object';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
@@ -51,9 +52,10 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
             try {
                 const result = await this.fetchModels(queryParams);
                 models = result.toArray();
-
-                this.metadata = result.meta;
-                this.set('hasMore', models.length >= limit);
+                setProperties(this, {
+                    metadata: result.meta,
+                    hasMore: models.length >= limit
+                });
 
                 tryInvoke(this.model, 'pushObjects', [models]);
             } catch(errors) {
@@ -63,46 +65,6 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
             this.set('isLoadingPage', false);
             return models;
         }
-
-        // loadModelsTask: any = task(function * (this: PaginationController, reset: boolean, params: RouteParams) {
-        //     // get(this, 'loadingBar').start();
-        //     if(reset) {
-        //         this.clearModels();
-        //     }
-        //
-        //     const offset = this.offset;
-        //     const limit = this.limit;
-        //     const queryParams = buildQueryParams(this, params, offset, limit);
-        //     const result = yield this.fetchModels(queryParams);
-        //     const models = result.toArray();
-        //
-        //     this.metadata = result.meta;
-        //     this.hasMore = models.length >= limit;
-        //
-        //     tryInvoke(this.model, 'pushObjects', [models]);
-        //     // get(this, 'loadingBar').stop();
-        //     return models;
-        // }).restartable();
-
-        // @task(function * (this: PaginationController, reset: boolean, params: RouteParams) {
-        //     // get(this, 'loadingBar').start();
-        //     if(reset) {
-        //         this.clearModels();
-        //     }
-        //
-        //     const offset = this.offset;
-        //     const limit = this.limit;
-        //     const queryParams = buildQueryParams(this, params, offset, limit);
-        //     const result = yield this.fetchModels(queryParams);
-        //     const models = result.toArray();
-        //
-        //     this.metadata = result.meta;
-        //     this.hasMore = models.length >= limit;
-        //
-        //     tryInvoke(this.model, 'pushObjects', [models]);
-        //     // get(this, 'loadingBar').stop();
-        //     return models;
-        // }).restartable() loadModelsTask: any;
 
         fetchModels(queryParams: any) {
             const modelName = this.modelName as never;
@@ -178,7 +140,6 @@ export default function controllerPagination<T extends ConcreteSubclass<any>>(Co
         @action
         clearFilters() {
             this.serverQueryParams.forEach((param: string) => this.set(param, null));
-            // get(this, 'serverQueryParams').forEach((param) => set(this, param, null));
             return this.filterModels();
         }
     }

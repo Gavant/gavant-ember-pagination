@@ -58,8 +58,9 @@ export function getParamsObject(parameters: [], context: PaginationController) {
                 valueKey = paramArray[1];
             }
             let value = get(context, valueKey);
-            if (moment.isMoment(value)) {
-                value = value.format('YYYY-MM-DDTHH:mm:ss');
+            if (moment.isMoment(value) || moment.isDate(value)) {
+                let serverDateFormat = getWithDefault(context, 'serverDateFormat', 'YYYY-MM-DDTHH:mm:ss');
+                value = moment(value).format(serverDateFormat);
             }
             params[key] = value;
         });
