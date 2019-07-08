@@ -1,4 +1,5 @@
 import DS from 'ember-data';
+import { setProperties, set } from '@ember/object';
 import { assert } from '@ember/debug';
 import { PaginationController, buildQueryParams } from '@gavant/ember-pagination/utils/query-params';
 
@@ -11,9 +12,11 @@ export default function routePagination<T extends ConcreteSubclass<any>>(RouteSu
         setupController(controller: PaginationController, model: any) {
             assert('Model is not an instanceof DS.AdapterPopulatedRecordArray. In order to use the RoutePaginationMixin, the model returned must be an instance of DS.AdapterPopulatedRecordArray which comes from using store.query', model instanceof DS.AdapterPopulatedRecordArray);
 
-            controller.modelName = model.type.modelName;
-            controller.metadata = model.meta;
-            controller.hasMore = model.length >= controller.limit;
+            setProperties(controller, {
+                modelName: model.type.modelName,
+                metadata: model.meta,
+                hasMore: model.length >= controller.limit
+            });
 
             const modelForController = model.toArray();
             super.setupController(controller, modelForController);
@@ -39,7 +42,7 @@ export default function routePagination<T extends ConcreteSubclass<any>>(RouteSu
             super.resetController(controller, isExiting, transition);
 
             if (isExiting) {
-                controller.model = null;
+                set(controller, 'model', null);
             }
         }
 
