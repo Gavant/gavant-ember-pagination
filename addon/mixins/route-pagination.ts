@@ -11,7 +11,11 @@ export default Mixin.create({
      * @param model - The result returned from a `store.query`
      */
     setupController(controller: PaginationController, model: any) {
-        assert('Model is not an instanceof DS.AdapterPopulatedRecordArray. In order to use the RoutePaginationMixin, the model returned must be an instance of DS.AdapterPopulatedRecordArray which comes from using store.query', model instanceof DS.AdapterPopulatedRecordArray);
+        assert(
+            'Model is not an instanceof DS.AdapterPopulatedRecordArray. In order to use the RoutePaginationMixin, the model returned must be an instance of DS.AdapterPopulatedRecordArray or DS.RecordArray which comes from using store.query',
+            model instanceof DS.AdapterPopulatedRecordArray || model instanceof DS.RecordArray
+        );
+
         setProperties(controller, {
             modelName: get(model, 'type.modelName'),
             metadata: get(model, 'meta'),

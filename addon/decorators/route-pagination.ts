@@ -10,7 +10,10 @@ import { PaginationController, buildQueryParams } from '@gavant/ember-pagination
 export default function routePagination<T extends ConcreteSubclass<any>>(RouteSubclass: T) {
     class PaginationRoute extends RouteSubclass {
         setupController(controller: PaginationController, model: any) {
-            assert('Model is not an instanceof DS.AdapterPopulatedRecordArray. In order to use the RoutePaginationMixin, the model returned must be an instance of DS.AdapterPopulatedRecordArray which comes from using store.query', model instanceof DS.AdapterPopulatedRecordArray);
+            assert(
+                'Model is not an instanceof DS.AdapterPopulatedRecordArray. In order to use the RoutePaginationMixin, the model returned must be an instance of DS.AdapterPopulatedRecordArray or DS.RecordArray which comes from using store.query',
+                model instanceof DS.AdapterPopulatedRecordArray || model instanceof DS.RecordArray
+            );
 
             setProperties(controller, {
                 modelName: model.type.modelName,
