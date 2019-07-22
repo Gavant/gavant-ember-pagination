@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## v0.1.5
+
+### Pull Requests
+
+- [#3](https://github.com/Gavant/gavant-ember-pagination/pull/3)  Fix sort param  *by [Gavant](https://github.com/Gavant)*
+
 ## v0.1.4
 
 ### Pull Requests
