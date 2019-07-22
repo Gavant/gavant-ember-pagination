@@ -33,8 +33,7 @@ export function buildQueryParams(
     let list: any = controller[queryParamListName];
     let queryParams = getParamsObject(list, controller);
     queryParams.offset = getWithDefault(controller, 'offset', offset);
-    queryParams.limit =  getWithDefault(controller, 'limit', limit);
-    queryParams.sort = getWithDefault(controller, 'sort', []);
+    queryParams.limit = getWithDefault(controller, 'limit', limit);
     return removeEmptyQueryParams(queryParams);
 }
 
