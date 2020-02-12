@@ -1,13 +1,12 @@
 import DS from 'ember-data';
 import { buildQueryParams, sortDirection } from '@gavant/ember-pagination/utils/query-params';
-import { setProperties } from '@ember/object';
 import { tryInvoke } from '@ember/utils';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
 import NativeArray from '@ember/array/-private/native-array';
-import { action, computed } from '@ember-decorators/object';
-import { readOnly, or } from '@ember-decorators/object/computed';
-import { inject as service } from '@ember-decorators/service';
+import { action, computed, setProperties } from '@ember/object';
+import { readOnly, or } from '@ember/object/computed';
+import { inject as service } from '@ember/service';
 import Router from '@ember/routing/router-service';
 
 /**

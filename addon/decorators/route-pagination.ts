@@ -28,7 +28,7 @@ export default function routePagination<T extends ConcreteSubclass<any>>(RouteSu
          * Get the controller params
          * @param routeName The name of the route you want to get the controller parameters for.
          * Defaults to current route if nothing is passed in
-         * Should be passed in using `/` seperators i.e. `accounts/index`
+         * Should be passed in using `/` separators i.e. `accounts/index`
          * @returns - Controller query params
          */
         getControllerParams(routeName: string = this.routeName) {
