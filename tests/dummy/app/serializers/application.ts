@@ -11,7 +11,7 @@ export default class ApplicationSerializer extends RESTSerializer {
             options = {};
         }
 
-        //include the record ID in the request body for PUTs, ect
+        //include the record ID in the request body for PUTs, etc
         options.includeId = true;
         return this._super(snapshot, options);
     }
