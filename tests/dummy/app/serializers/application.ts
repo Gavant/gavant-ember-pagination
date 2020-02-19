@@ -17,7 +17,6 @@ export default class ApplicationSerializer extends RESTSerializer {
     }
 
     normalizeResponse(store: any, primaryModelClass: any, payload: any, id: any, requestType: any) {
-        payload = { 'posts': payload };
         return super.normalizeResponse(store, primaryModelClass, payload, id, requestType);
     }
 }

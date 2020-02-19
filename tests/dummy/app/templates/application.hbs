@@ -1,9 +1,13 @@
-{{#each this.model as |post|}}
-  <h1>
-    {{post.title}}
-  </h1>
-  <p>
-    {{post.body}}
-  </p>
-  <hr>
+{{#each this.model as |customer|}}
+    <h1>
+        {{customer.firstName}} {{customer.lastName}}
+    </h1>
+    <ul>
+        <li>{{customer.emailAddress}}</li>
+        <li>{{customer.phoneNumber}}</li>
+        <li>{{customer.company}}</li>
+        <li>{{customer.project}}</li>
+        <li>{{customer.budget}}</li>
+    </ul>
+    <hr>
 {{/each}}

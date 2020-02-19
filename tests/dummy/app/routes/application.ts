@@ -1,10 +1,10 @@
 import Route from '@ember/routing/route';
-import RoutePagination from '@gavant/ember-pagination/decorators/route-pagination';
+import RoutePagination from '@gavant/ember-pagination/mixins/route-pagination';
 
 export default class Application extends RoutePagination(Route) {
-    model() {
+    model(this: any) {
         const params = this.getControllerParams();
-        return this.store.query('post', params);
+        return this.store.query('customer', params);
     }
 
     setupController(controller: any, model: any) {

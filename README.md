@@ -22,26 +22,10 @@ ember install @gavant/ember-pagination
 Usage
 ------------------------------------------------------------------------------
 
-There are two ways to use this addon.
-
-For classic classes, you use the mixin.
-
+For Native classes, you use the "mixin".
 ```
 import Route from '@ember/routing/route';
 import RoutePagination from '@gavant/ember-pagination/mixins/route-pagination';
-
-export default Route.extend(RoutePagination, {
-    model() {
-        const params = this.getControllerParams();
-        return get(this, 'store').query('account', params);
-    }
-});
-```
-
-For Native classes, you use the "decorator".
-```
-import Route from '@ember/routing/route';
-import RoutePagination from '@gavant/ember-pagination/decorators/route-pagination';
 
 export default class Accounts extends RoutePagination(Route) {
     model() {
@@ -50,21 +34,6 @@ export default class Accounts extends RoutePagination(Route) {
     }
 }
 ```
-
-Technically speaking you can actually use the route-pagination as a decorator..
-```
-import Route from '@ember/routing/route';
-import RoutePagination from '@gavant/ember-pagination/decorators/route-pagination';
-
-@RoutePagination
-export default class Accounts extends Route {
-    model() {
-        const params = this.getControllerParams();
-        return this.store.query('account', params);
-    }
-}
-```
-but the main issue with that is RoutePagination will be the extend the `Accounts` Route, and generally you want the order of that to be reversed.
 
 Contributing
 ------------------------------------------------------------------------------
