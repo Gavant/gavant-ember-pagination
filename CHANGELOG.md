@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## v1.0.0
+
+### Pull Requests
+
+- [#4](https://github.com/Gavant/gavant-ember-pagination/pull/4)  Conversion to Octane  *by [gspain/release](https://github.com/gspain/release)*
+
 ## v0.1.5
 
 ### Pull Requests
