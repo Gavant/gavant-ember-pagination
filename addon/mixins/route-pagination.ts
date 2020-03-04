@@ -3,6 +3,8 @@ import { assert } from '@ember/debug';
 import DS from 'ember-data';
 import { PaginationController, buildQueryParams } from '@gavant/ember-pagination/utils/query-params';
 
+export type ConcreteSubclass<T> = new(...args: any[]) => T;
+
 export default function RoutePaginationClass<T extends ConcreteSubclass<any>>(RouteSubclass: T) {
     class PaginationRouteClass extends RouteSubclass {
         /**

@@ -9,6 +9,8 @@ import { buildQueryParams, PaginationController, sortDirection } from '@gavant/e
 import DS from 'ember-data';
 import RouterService from '@ember/routing/router-service';
 
+export type ConcreteSubclass<T> = new(...args: any[]) => T;
+
 export default function ControllerPaginationClass<T extends ConcreteSubclass<any>>(ControllerSubclass: T) {
     class PaginationControllerClass extends ControllerSubclass {
         @service router!: RouterService;
