@@ -1,6 +1,10 @@
 Changelog
 =========
 
+## v1.0.1
+
+- Ensure TypeScript precompile step happens on publish
+
 ## v1.0.0
 
 ### Pull Requests
