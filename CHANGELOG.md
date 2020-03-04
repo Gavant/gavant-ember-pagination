@@ -1,6 +1,10 @@
 Changelog
 =========
 
+## v1.0.2
+
+- Use locally exported types intead of global ones where possible
+
 ## v1.0.1
 
 - Ensure TypeScript precompile step happens on publish
