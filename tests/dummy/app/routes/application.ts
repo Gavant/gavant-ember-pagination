@@ -6,9 +6,4 @@ export default class Application extends RoutePagination(Route) {
         const params = this.getControllerParams();
         return this.store.query('customer', params);
     }
-
-    setupController(controller: any, model: any) {
-        console.log('This is a test');
-        super.setupController(controller, model);
-    }
 }

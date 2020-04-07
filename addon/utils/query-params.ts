@@ -8,6 +8,8 @@ export interface PaginationController {
     limit: number;
     sort: string[];
     modelName: string;
+    pagingRootKey: string | null;
+    filterRootKey: string | null;
     [key: string]: any;
 }
 
@@ -32,8 +34,15 @@ export function buildQueryParams(
 ) {
     let list: any = controller[queryParamListName];
     let queryParams = getParamsObject(list, controller);
-    queryParams.offset = getWithDefault(controller, 'offset', offset);
-    queryParams.limit = getWithDefault(controller, 'limit', limit);
+    let pagingRoot = queryParams;
+
+    if(controller.pagingRootKey) {
+        queryParams[controller.pagingRootKey] = {};
+        pagingRoot = queryParams[controller.pagingRootKey];
+    }
+
+    pagingRoot.offset = getWithDefault(controller, 'offset', offset);
+    pagingRoot.limit = getWithDefault(controller, 'limit', limit);
     return removeEmptyQueryParams(queryParams);
 }
 
@@ -45,6 +54,12 @@ export function buildQueryParams(
  */
 export function getParamsObject(parameters: [], context: PaginationController) {
     let params: any = {};
+    let filterRoot = params;
+
+    if(context.filterRootKey) {
+        params[context.filterRootKey] = {};
+        filterRoot = params[context.filterRootKey];
+    }
 
     if(isArray(parameters)) {
         parameters.forEach((param: string) => {
@@ -61,8 +76,10 @@ export function getParamsObject(parameters: [], context: PaginationController) {
                 let serverDateFormat = getWithDefault(context, 'serverDateFormat', 'YYYY-MM-DDTHH:mm:ss');
                 value = moment(value).format(serverDateFormat);
             }
-            params[key] = value;
+            filterRoot[key] = value;
         });
+
+        filterRoot = removeEmptyQueryParams(filterRoot);
     }
 
     if(!isEmpty(get(context, 'sort'))) {
