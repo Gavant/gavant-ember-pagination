@@ -18,6 +18,8 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
         hasMore: boolean = true;
         limit: number = 10;
         isLoadingPage = false;
+        pagingRootKey = 'page';
+        filterRootKey = 'filter';
 
         @or('isLoadingPage', 'isLoadingRoute') isLoadingModels!: boolean;
         @readOnly('model.length') offset: number | undefined;
