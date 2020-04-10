@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## v1.0.4
+
+### Pull Requests
+
+- [#7](https://github.com/Gavant/gavant-ember-pagination/pull/7)  JSON-API include support  *by [Gavant](https://github.com/Gavant)*
+
 ## v1.0.3
 
 ### Pull Requests
