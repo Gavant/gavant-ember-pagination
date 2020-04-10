@@ -3,6 +3,7 @@ import ControllerPagination from '@gavant/ember-pagination/mixins/controller-pag
 
 export default class Application extends ControllerPagination(Controller) {
     serverQueryParams = ['foo', 'bar', 'baz'];
+    include = ['some-rel', 'another-rel.foo'];
     foo = 123;
     bar = true;
     baz = null;
