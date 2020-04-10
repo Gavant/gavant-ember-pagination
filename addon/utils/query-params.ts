@@ -10,6 +10,7 @@ export interface PaginationController {
     modelName: string;
     pagingRootKey: string | null;
     filterRootKey: string | null;
+    includeKey: string;
     [key: string]: any;
 }
 
@@ -30,10 +31,12 @@ export function buildQueryParams(
     controller: PaginationController,
     offset: number = 0,
     limit: number = 10,
-    queryParamListName: string = 'serverQueryParams'
+    queryParamListName: string = 'serverQueryParams',
+    includeListName: string = 'include'
 ) {
-    let list: any = controller[queryParamListName];
-    let queryParams = getParamsObject(list, controller);
+    const filterList: string[] = controller[queryParamListName];
+    const includeList: string[] = controller[includeListName];
+    let queryParams = getParamsObject(filterList, controller);
     let pagingRoot = queryParams;
 
     if(controller.pagingRootKey) {
@@ -43,6 +46,11 @@ export function buildQueryParams(
 
     pagingRoot.offset = getWithDefault(controller, 'offset', offset);
     pagingRoot.limit = getWithDefault(controller, 'limit', limit);
+
+    if(isArray(includeList) && !isEmpty(includeList)) {
+        queryParams[controller.includeKey] = includeList.join(',');
+    }
+
     return removeEmptyQueryParams(queryParams);
 }
 
@@ -52,7 +60,7 @@ export function buildQueryParams(
  * @param context - The pagination controller instance
  * @returns - Object with query params to send to server
  */
-export function getParamsObject(parameters: [], context: PaginationController) {
+export function getParamsObject(parameters: string[] | undefined, context: PaginationController) {
     let params: any = {};
     let filterRoot = params;
 
