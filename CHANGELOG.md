@@ -1,6 +1,10 @@
 Changelog
 =========
 
+## v1.0.5
+
+- Add more explicit types to `ControllerPagination` mixin
+
 ## v1.0.4
 
 ### Pull Requests
