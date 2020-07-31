@@ -17,10 +17,10 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
         sort: NativeArray<any> = A();
         hasMore: boolean = true;
         limit: number = 10;
-        isLoadingPage = false;
-        pagingRootKey = 'page';
-        filterRootKey = 'filter';
-        includeKey = 'include';
+        isLoadingPage: boolean = false;
+        pagingRootKey: string | null = 'page';
+        filterRootKey: string | null = 'filter';
+        includeKey: string = 'include';
 
         @or('isLoadingPage', 'isLoadingRoute') isLoadingModels!: boolean;
         @readOnly('model.length') offset: number | undefined;
