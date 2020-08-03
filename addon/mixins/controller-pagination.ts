@@ -5,14 +5,15 @@ import { tryInvoke } from '@ember/utils';
 import NativeArray from '@ember/array/-private/native-array';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
-import { buildQueryParams, sortDirection } from '@gavant/ember-pagination/utils/query-params';
+
 import DS from 'ember-data';
 import RouterService from '@ember/routing/router-service';
 import Controller from '@ember/controller';
+import { buildQueryParams, sortDirection } from '../utils/query-params';
+
 
 export type ConcreteSubclass<T> = new (...args: any[]) => T;
 export type PaginationControllerClass = ConcreteSubclass<PaginationController>;
-// export declare const ActionsHash: any;
 
 export interface PaginationController extends Controller {
     offset: number | undefined;
@@ -24,14 +25,12 @@ export interface PaginationController extends Controller {
     pagingRootKey: string | null;
     filterRootKey: string | null;
     includeKey: string;
-    fetchModels(
-        queryParams: any
-    ): DS.AdapterPopulatedRecordArray<any> & DS.PromiseArray<any>;
+    fetchModels(queryParams: any): DS.AdapterPopulatedRecordArray<any> & DS.PromiseArray<any>;
     clearModels(): void;
-    _loadModels( reset: boolean): Promise<any[]>;
+    _loadModels(reset: boolean): Promise<any[]>;
     loadModels(reset: boolean): Promise<any[]> | undefined;
     filterModels(): Promise<any[]> | undefined;
-    reloadModels(): Promise<any[]> | undefined
+    reloadModels(): Promise<any[]> | undefined;
     metadata?: {
         [key: string]: any;
     };
@@ -45,10 +44,12 @@ interface ArrayMeta {
 
 export type SearchQuery = DS.AdapterPopulatedRecordArray<any> & DS.RecordArray<any> & DS.PromiseArray<any> & ArrayMeta;
 
-export function ControllerPagination<U extends ConcreteSubclass<Controller>>(ControllerSubclass: U):  {
+export function ControllerPagination<U extends ConcreteSubclass<Controller>>(
+    ControllerSubclass: U
+): {
     new (...args: any[]): PaginationController;
     prototype: PaginationController;
-}  {
+} {
     class PaginationClass extends ControllerSubclass implements PaginationController {
         @service router!: RouterService;
         sort: NativeArray<any> = A();
@@ -90,7 +91,7 @@ export function ControllerPagination<U extends ConcreteSubclass<Controller>>(Con
             const queryParams = buildQueryParams(this, offset, limit);
             let models = [];
             try {
-                const result = await this.fetchModels(queryParams) as SearchQuery;
+                const result = (await this.fetchModels(queryParams)) as SearchQuery;
                 models = result.toArray();
                 setProperties(this, {
                     metadata: result.meta,
