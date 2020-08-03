@@ -2,17 +2,8 @@ import { get, set, getWithDefault } from '@ember/object';
 import { isArray } from '@ember/array';
 import { isEmpty } from '@ember/utils';
 import moment from 'moment';
+import { PaginationController, PaginationControllerClass } from '../mixins/controller-pagination';
 
-export interface PaginationController {
-    offset: number | undefined;
-    limit: number;
-    sort: string[];
-    modelName: string;
-    pagingRootKey: string | null;
-    filterRootKey: string | null;
-    includeKey: string;
-    [key: string]: any;
-}
 
 export enum sortDirection {
     ascending = "asc",
@@ -28,14 +19,14 @@ export enum sortDirection {
  * @returns - Object with query params to send to server
  */
 export function buildQueryParams(
-    controller: PaginationController,
+    controller: InstanceType<PaginationControllerClass>,
     offset: number = 0,
     limit: number = 10,
     queryParamListName: string = 'serverQueryParams',
     includeListName: string = 'include'
 ) {
-    const filterList: string[] = controller[queryParamListName];
-    const includeList: string[] = controller[includeListName];
+    const filterList: string[] = controller[queryParamListName as keyof PaginationController] ;
+    const includeList: string[] = controller[includeListName as keyof PaginationController];
     let queryParams = getParamsObject(filterList, controller);
     let pagingRoot = queryParams;
 
@@ -60,7 +51,7 @@ export function buildQueryParams(
  * @param context - The pagination controller instance
  * @returns - Object with query params to send to server
  */
-export function getParamsObject(parameters: string[] | undefined, context: PaginationController) {
+export function getParamsObject(parameters: string[] | undefined, context: InstanceType<PaginationControllerClass>) {
     let params: any = {};
     let filterRoot = params;
 
@@ -79,7 +70,7 @@ export function getParamsObject(parameters: string[] | undefined, context: Pagin
                 key = paramArray[0];
                 valueKey = paramArray[1];
             }
-            let value = get(context, valueKey);
+            let value = get(context, valueKey as keyof PaginationController);
             if (moment.isMoment(value) || moment.isDate(value)) {
                 let serverDateFormat = getWithDefault(context, 'serverDateFormat', 'YYYY-MM-DDTHH:mm:ss');
                 value = moment(value).format(serverDateFormat);
