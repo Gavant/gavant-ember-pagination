@@ -1,15 +1,54 @@
-import { set, setProperties } from '@ember/object';
+import { setProperties, set } from '@ember/object';
 import { assert } from '@ember/debug';
 import DS from 'ember-data';
 import { buildQueryParams } from '@gavant/ember-pagination/utils/query-params';
-// import Route from '@ember/routing/route';
 import Route from '@ember/routing/route';
-import { PaginationControllerClass, PaginationController } from './controller-pagination';
+import {  PaginationController, GenericConstructor, PaginationControllerClass } from './controller-pagination';
 
 export type ConcreteSubclass<T> = new (...args: any[]) => T;
 export type PaginationRouteClass = ConcreteSubclass<Route>;
 export interface PaginationRoute extends Route {
     getControllerParams(routeName?: string): any;
+}
+
+/**
+ * Adds functionality `modelName`, `metadata`, and `hasMore` to the controller
+ * @param controller - The controller you want the functionality to be added on to
+ * @param model - The result returned from a `store.query`
+ */
+export function setupController(controller: InstanceType<GenericConstructor<PaginationController>>, model: any) {
+    assert(
+        'Model is not an instanceof DS.AdapterPopulatedRecordArray. In order to use the RoutePaginationMixin, the model returned must be an instance of DS.AdapterPopulatedRecordArray or DS.RecordArray which comes from using store.query',
+        model instanceof DS.AdapterPopulatedRecordArray || model instanceof DS.RecordArray
+    );
+
+    setProperties(controller, {
+        modelName: model.type.modelName,
+        metadata: model.meta,
+        hasMore: model.length >= controller.limit
+    } as any);
+}
+
+ /**
+ * Resets the controller by setting the model to be null
+ * @param controller - The controller you want the functionality to be added on to
+ * @param isExiting - Is the controller exiting
+ */
+export function resetController(controller: InstanceType<GenericConstructor<PaginationController>>, isExiting: boolean) {
+    if (isExiting) {
+        controller.model = null;
+    }
+}
+
+/**
+ * Get the controller params
+ * @param routeName The name of the route you want to get the controller parameters for.
+ * Defaults to current route if nothing is passed in
+ * Should be passed in using `/` separators i.e. `accounts/index`
+ * @returns - Controller query params
+ */
+export function getControllerParams(controller: InstanceType<GenericConstructor<PaginationController>>): any {
+    return buildQueryParams(controller);
 }
 
 export function RoutePagination<T extends PaginationRouteClass>(

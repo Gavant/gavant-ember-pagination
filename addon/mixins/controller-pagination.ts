@@ -12,8 +12,8 @@ import Controller from '@ember/controller';
 import { buildQueryParams, sortDirection } from '../utils/query-params';
 
 
-export type ConcreteSubclass<T> = new (...args: any[]) => T;
-export type PaginationControllerClass = ConcreteSubclass<PaginationController>;
+export type GenericConstructor<T> = new (...args: any[]) => T;
+export type PaginationControllerClass = GenericConstructor<PaginationController>;
 
 export interface PaginationController extends Controller {
     offset: number | undefined;
@@ -44,7 +44,7 @@ interface ArrayMeta {
 
 export type SearchQuery = DS.AdapterPopulatedRecordArray<any> & DS.RecordArray<any> & DS.PromiseArray<any> & ArrayMeta;
 
-export function ControllerPagination<U extends ConcreteSubclass<Controller>>(
+export function ControllerPagination<U extends GenericConstructor<Controller>>(
     ControllerSubclass: U
 ): {
     new (...args: any[]): PaginationController;
