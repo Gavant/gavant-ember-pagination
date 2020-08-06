@@ -1,3 +1,4 @@
+import { Ember } from 'ember';
 import { inject as service } from '@ember/service';
 import { action, computed, setProperties } from '@ember/object';
 import { readOnly, or } from '@ember/object/computed';
@@ -11,38 +12,51 @@ import RouterService from '@ember/routing/router-service';
 import Controller from '@ember/controller';
 import { buildQueryParams, sortDirection } from '../utils/query-params';
 
-
 export type GenericConstructor<T> = new (...args: any[]) => T;
 export type PaginationControllerClass = GenericConstructor<PaginationController>;
 
 export interface PaginationController extends Controller {
-    offset: number | undefined;
-    limit: number;
-    sort: string[];
-    hasMore: boolean;
-    modelName: string;
-    isLoadingPage: boolean;
-    pagingRootKey: string | null;
     filterRootKey: string | null;
+    hasMore: boolean;
     includeKey: string;
-    fetchModels(queryParams: any): DS.AdapterPopulatedRecordArray<any> & DS.PromiseArray<any>;
-    clearModels(): void;
-    _loadModels(reset: boolean): Promise<any[]>;
-    loadModels(reset: boolean): Promise<any[]> | undefined;
-    filterModels(): Promise<any[]> | undefined;
-    reloadModels(): Promise<any[]> | undefined;
+    isLoadingPage: boolean;
+    isLoadingModels: boolean;
+    isLoadingRoute: RegExpMatchArray | null;
+    limit: number;
     metadata?: {
         [key: string]: any;
     };
-    serverQueryParams?: any[];
+    modelName: string;
+    offset: number | undefined;
+    pagesLoaded: number;
+    pagingRootKey: string | null;
     serverDateFormat?: string;
+    serverQueryParams?: any[];
+    sort: string[];
+
+    changeSorting(sort: string[], dir: sortDirection, isSorted: boolean): Promise<unknown[]> | undefined;
+    clearFilters(): Promise<unknown[]> | undefined;
+    clearModels(): void;
+    clearSorting(): void;
+    fetchModels(queryParams: any): PagingQuery<unknown>;
+    filter(): Promise<unknown[]> | undefined;
+    filterModels(): Promise<unknown[]> | undefined;
+    loadModels(reset: boolean): Promise<unknown[]> | undefined;
+    loadMoreModels(): Promise<unknown[]> | undefined;
+    reloadModels(): Promise<unknown[]> | undefined;
+    removeModel(model: DS.Model): Promise<DS.Model>;
+
+    _loadModels(reset: boolean): Promise<unknown[]>;
 }
 
 interface ArrayMeta {
-    meta: any;
+    meta?: any;
 }
 
-export type SearchQuery = DS.AdapterPopulatedRecordArray<any> & DS.RecordArray<any> & DS.PromiseArray<any> & ArrayMeta;
+export type FulfilledPagingQuery<T> =
+    | (DS.AdapterPopulatedRecordArray<T> & ArrayMeta)
+    | (Ember.ArrayProxy<T> & ArrayMeta);
+export type PagingQuery<T> = Promise<DS.AdapterPopulatedRecordArray<T> & ArrayMeta> | FulfilledPagingQuery<T>;
 
 export function ControllerPagination<U extends GenericConstructor<Controller>>(
     ControllerSubclass: U
@@ -89,9 +103,9 @@ export function ControllerPagination<U extends GenericConstructor<Controller>>(
             const offset = this.offset;
             const limit = this.limit;
             const queryParams = buildQueryParams(this, offset, limit);
-            let models = [];
+            let models: any = [];
             try {
-                const result = (await this.fetchModels(queryParams)) as SearchQuery;
+                const result = await this.fetchModels(queryParams);
                 models = result.toArray();
                 setProperties(this, {
                     metadata: result.meta,
@@ -112,9 +126,9 @@ export function ControllerPagination<U extends GenericConstructor<Controller>>(
          * It should return a promise, which resolves to an array-like object (such as a DS.RecordArray)
          * @returns - the result of `store.query`
          */
-        fetchModels(queryParams: any): SearchQuery {
+        fetchModels<T>(queryParams: any): PagingQuery<T> {
             const modelName = this.modelName;
-            return this.store.query(modelName, queryParams) as SearchQuery;
+            return this.store.query(modelName, queryParams) as PagingQuery<T>;
         }
 
         /**
@@ -122,7 +136,7 @@ export function ControllerPagination<U extends GenericConstructor<Controller>>(
          * @param reset - Clear models
          * @returns - an array of models
          */
-        loadModels(reset: boolean = false): Promise<any[]> | undefined {
+        loadModels<T>(reset: boolean = false): Promise<T[]> | undefined {
             if (!this.isLoadingPage) {
                 return this._loadModels(reset);
             } else {

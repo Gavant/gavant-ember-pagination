@@ -3,12 +3,18 @@ import { assert } from '@ember/debug';
 import DS from 'ember-data';
 import { buildQueryParams } from '@gavant/ember-pagination/utils/query-params';
 import Route from '@ember/routing/route';
-import {  PaginationController, GenericConstructor, PaginationControllerClass } from './controller-pagination';
+import Transition from '@ember/routing/-private/transition';
+import { PaginationController, GenericConstructor, PaginationControllerClass } from './controller-pagination';
 
-export type ConcreteSubclass<T> = new (...args: any[]) => T;
-export type PaginationRouteClass = ConcreteSubclass<Route>;
+export type PaginationRouteClass = GenericConstructor<Route>;
 export interface PaginationRoute extends Route {
     getControllerParams(routeName?: string): any;
+    resetController(
+        controller: InstanceType<GenericConstructor<PaginationController>>,
+        isExiting: boolean,
+        transition: Transition
+    ): void;
+    setupController(controller: InstanceType<GenericConstructor<PaginationController>>, model: any): void;
 }
 
 /**
@@ -29,12 +35,15 @@ export function setupController(controller: InstanceType<GenericConstructor<Pagi
     } as any);
 }
 
- /**
+/**
  * Resets the controller by setting the model to be null
  * @param controller - The controller you want the functionality to be added on to
  * @param isExiting - Is the controller exiting
  */
-export function resetController(controller: InstanceType<GenericConstructor<PaginationController>>, isExiting: boolean) {
+export function resetController(
+    controller: InstanceType<GenericConstructor<PaginationController>>,
+    isExiting: boolean
+) {
     if (isExiting) {
         controller.model = null;
     }
