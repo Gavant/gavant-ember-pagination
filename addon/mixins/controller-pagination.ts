@@ -38,7 +38,7 @@ export interface PaginationController extends Controller {
     clearFilters(): Promise<unknown[]> | undefined;
     clearModels(): void;
     clearSorting(): void;
-    fetchModels(queryParams: any): PagingQuery<unknown>;
+    fetchModels<T>(queryParams: any): PagingQuery<T>;
     filter(): Promise<unknown[]> | undefined;
     filterModels(): Promise<unknown[]> | undefined;
     loadModels(reset: boolean): Promise<unknown[]> | undefined;
