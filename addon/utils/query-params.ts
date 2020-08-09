@@ -2,6 +2,8 @@ import { get, set, getWithDefault } from '@ember/object';
 import { isArray } from '@ember/array';
 import { isEmpty } from '@ember/utils';
 import moment from 'moment';
+import { Pagination } from '../hooks/pagination';
+import DS from 'ember-data';
 
 export interface PaginationController {
     offset: number | undefined;
@@ -27,28 +29,28 @@ export enum sortDirection {
  * @param queryParamListName - The name of the query params you want to use to page on the server
  * @returns - Object with query params to send to server
  */
-export function buildQueryParams(
-    controller: PaginationController,
+export function buildQueryParams<T extends DS.Model>(
+    paginator: Pagination<T>,
     offset: number = 0,
     limit: number = 10,
-    queryParamListName: string = 'serverQueryParams',
-    includeListName: string = 'include'
+    queryParamListName: keyof Pagination<T> = 'serverQueryParams',
+    includeListName: keyof Pagination<T> = 'include'
 ) {
-    const filterList: string[] = controller[queryParamListName];
-    const includeList: string[] = controller[includeListName];
-    let queryParams = getParamsObject(filterList, controller);
+    const filterList: string[] = paginator[queryParamListName];
+    const includeList: string[] = paginator[includeListName];
+    let queryParams = getParamsObject<T>(filterList, paginator);
     let pagingRoot = queryParams;
 
-    if(controller.pagingRootKey) {
-        queryParams[controller.pagingRootKey] = {};
-        pagingRoot = queryParams[controller.pagingRootKey];
+    if(paginator.pagingRootKey) {
+        queryParams[paginator.pagingRootKey] = {};
+        pagingRoot = queryParams[paginator.pagingRootKey];
     }
 
-    pagingRoot.offset = getWithDefault(controller, 'offset', offset);
-    pagingRoot.limit = getWithDefault(controller, 'limit', limit);
+    pagingRoot.offset = getWithDefault(paginator, 'offset', offset);
+    pagingRoot.limit = getWithDefault(paginator, 'limit', limit);
 
     if(isArray(includeList) && !isEmpty(includeList)) {
-        queryParams[controller.includeKey] = includeList.join(',');
+        queryParams[paginator.includeKey] = includeList.join(',');
     }
 
     return removeEmptyQueryParams(queryParams);
@@ -60,7 +62,7 @@ export function buildQueryParams(
  * @param context - The pagination controller instance
  * @returns - Object with query params to send to server
  */
-export function getParamsObject(parameters: string[] | undefined, context: PaginationController) {
+export function getParamsObject<T extends DS.Model>(parameters: string[] | undefined, context: Pagination<T>) {
     let params: any = {};
     let filterRoot = params;
 
@@ -79,7 +81,7 @@ export function getParamsObject(parameters: string[] | undefined, context: Pagin
                 key = paramArray[0];
                 valueKey = paramArray[1];
             }
-            let value = get(context, valueKey);
+            let value = get(context, (valueKey as keyof Pagination<T>));
             if (moment.isMoment(value) || moment.isDate(value)) {
                 let serverDateFormat = getWithDefault(context, 'serverDateFormat', 'YYYY-MM-DDTHH:mm:ss');
                 value = moment(value).format(serverDateFormat);
