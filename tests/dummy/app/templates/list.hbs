@@ -3,7 +3,11 @@
 </p>
 <div class="row">
     <div class="col-6">
-        <p>Limit: {{this.paginator.limit}} Offset: {{this.paginator.offset}}</p>
+        <p>
+            Limit: {{this.paginator.config.limit}},
+            Offset: {{this.paginator.offset}},
+            Metadata Total: {{this.paginator.metadata.total}}
+        </p>
         <p>Total pages: {{this.totalPages}} <small class="text-muted">(getter in controller)</small></p>
         <p class="form-inline">
             <Input @value={{this.foo}} class="form-control mr-2" type="text" placeholder="Foo" />
@@ -61,7 +65,11 @@
         </p>
     </div>
     <div class="col-6">
-        <p>Limit: {{this.paginatorTwo.limit}} Offset: {{this.paginatorTwo.offset}}</p>
+        <p>
+            Limit: {{this.paginatorTwo.config.limit}},
+            Offset: {{this.paginatorTwo.offset}},
+            Metadata Total: {{this.paginatorTwo.metadata.total}}
+        </p>
         <p>Total pages: {{this.totalPagesTwo}} <small class="text-muted">(getter in controller)</small></p>
         <p class="form-inline">
             <Input @value={{this.mappedFilter}} class="form-control mr-2" type="text" placeholder="Custom Filter Property" />
