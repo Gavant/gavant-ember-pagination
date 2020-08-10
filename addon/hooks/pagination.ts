@@ -5,6 +5,7 @@ import NativeArray from '@ember/array/-private/native-array';
 import { tracked } from '@glimmer/tracking';
 import { A } from '@ember/array';
 import DS from 'ember-data';
+import RouterService from '@ember/routing/router-service';
 
 import { buildQueryParams  } from '@gavant/ember-pagination/utils/query-params';
 
@@ -40,6 +41,7 @@ export interface PaginationArgs<T extends DS.Model, M = ResponseMetadata> {
 
 export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     @service store!: DS.Store;
+    @service router!: RouterService;
 
     context: any;
     modelName: string;
@@ -61,10 +63,23 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     @tracked hasMore: boolean = true;
     @tracked isLoading: boolean = false;
 
+    get isLoadingRoute() {
+        return this.router.currentRouteName.match(/loading$/);
+    }
+
+    get isLoadingModels() {
+        return this.isLoading || this.isLoadingRoute;
+    }
+
     get offset() {
         return this.rows.length;
     }
 
+    /**
+     * Sets the initial pagination data/configuration which at minimum, requires
+     * a context, modelName, and initial rows/metadata
+     * @param {PaginationArgs<T, M>} args
+     */
     constructor(args: PaginationArgs<T, M>) {
         this.modelName = args.context;
         this.setConfigs(args);
@@ -96,8 +111,14 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         this.hasMore = this.rows.length >= this.limit;
     }
 
+    /**
+     * Builds the query params object and makes the request for the next
+     * page of results (or the first page, if reset is true)
+     * @param {Boolean} reset
+     * @returns {Promise<T[]>}
+     */
     @action
-    async loadModels(reset = false) {
+    async loadModels(reset = false): Promise<T[]> {
         if(reset) {
             this.clearModels();
         }
@@ -130,37 +151,73 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         }
     }
 
+    /**
+     * Makes the store.query() request using the provided query params object
+     * @param {any} queryParams
+     * @returns {Promise<RecordArrayWithMeta<T>>}
+     */
     @action
     async queryModels(queryParams: any): Promise<RecordArrayWithMeta<T>> {
-        //TODO if provided, call method that provides custom query records logic instead
         const results = await this.store.query(this.modelName, queryParams) as RecordArrayWithMeta<T>;
         return results;
     }
 
+    /**
+     * Loads the next page of models if there are more to load and is not currently loading
+     * @returns {Promise<T[]> | null}
+     */
     @action
-    loadMoreModels() {
-        if (this.hasMore && !this.isLoading) {
+    loadMoreModels(): Promise<T[]> | null {
+        if (this.hasMore && !this.isLoadingModels) {
             return this.loadModels();
         }
 
         return null;
     }
 
+    /**
+     * Reloads the first page of models, alias for `loadModels(true)`
+     * @returns {Promise<T[]>}
+     */
     @action
     reloadModels() {
         return this.loadModels(true);
     }
 
+    /**
+     * Reloads the first page of models w/filters applied, alias for `loadModels(true)`
+     * @returns {Promise<T[]>}
+     */
     @action
     filterModels() {
         return this.loadModels(true);
     }
 
+    /**
+     * Clears all current model rows array
+     */
     @action
     clearModels() {
         this.rows = A();
     }
 
+    /**
+     * Deletes the model and removes it from the rows array
+     * @param {T} model
+     * @returns {Promise<void>}
+     */
+    @action
+    async removeModel(model: T) {
+        const result = await model.destroyRecord();
+        this.rows.removeObject(result);
+        return result;
+    }
+
+    /**
+     * Updates the current sorts, calls an onChangeSorting() handler if provided
+     * and reloads the first page of models
+     * @param {Sorting[]} newSorts
+     */
     @action
     async changeSorting(newSorts: Sorting[]) {
         this.sorts = newSorts.map((col) =>
@@ -178,6 +235,20 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         return this.reloadModels();
     }
 
+    /**
+     * Clears the current sorts and reloads the first page of models
+     */
+    @action
+    clearSorting() {
+        return this.changeSorting([]);
+    }
+
+    /**
+     * Clears all models from the rows array and resets the current state
+     * Sometimes useful in resetController() when the pagination may not
+     * be recreated/overwritten on every transition, and you want to clear
+     * it when leaving the page.
+     */
     @action
     reset() {
         this.clearModels();
