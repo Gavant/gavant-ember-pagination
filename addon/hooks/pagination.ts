@@ -8,23 +8,56 @@ import DS from 'ember-data';
 
 import { buildQueryParams  } from '@gavant/ember-pagination/utils/query-params';
 
-export class Pagination<T extends DS.Model> {
+export type RecordArrayWithMeta<T> = DS.AdapterPopulatedRecordArray<T> & { meta: any };
+
+export interface ResponseMetadata {
+    totalCount: number;
+}
+
+export interface Sorting {
+    valuePath: string;
+    sortPath?: string;
+    isAscending: boolean;
+}
+
+export interface PaginationArgs<T extends DS.Model, M = ResponseMetadata> {
+    context: any;
+    modelName: string;
+    rows: NativeArray<T> | T[];
+    metadata: M;
+    limit?: number;
+    filterList?: string[];
+    includeList?: string[];
+    sorts?: string[];
+    pagingRootKey?: string | null;
+    filterRootKey?: string | null;
+    includeKey?: string;
+    sortKey?: string;
+    serverDateFormat?: string;
+    processQueryParams?: (params: any) => any;
+    onChangeSorting?: (sorts: string[], newSorts?: Sorting[]) => Promise<string[] | undefined> | void;
+}
+
+export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     @service store!: DS.Store;
 
+    context: any;
     modelName: string;
-    limit: number;
-    serverQueryParams: string[] = [];
-    include: string[] = [];
-    sort: string[] = [];
+    limit: number = 20;
+    filterList: string[] = [];
+    includeList: string[] = [];
+    sorts: string[] = [];
 
     pagingRootKey: string | null = 'page';
     filterRootKey: string | null = 'filter';
     includeKey: string = 'include';
+    sortKey: string = 'sort';
     serverDateFormat: string = 'YYYY-MM-DDTHH:mm:ss';
+    processQueryParams: (params: any) => any = (params: any) => params;
+    onChangeSorting?: (sorts: string[], newSorts?: Sorting[]) => Promise<string[] | undefined> | void;
 
-    @tracked rows: NativeArray<T> = A();
-    //TODO better default typing for metadata, allow passing in custom metadata interface type arg
-    @tracked metadata: any = {};
+    @tracked rows: NativeArray<T> | T[] = A();
+    @tracked metadata: M | undefined;
     @tracked hasMore: boolean = true;
     @tracked isLoading: boolean = false;
 
@@ -32,11 +65,34 @@ export class Pagination<T extends DS.Model> {
         return this.rows.length;
     }
 
-    constructor(modelName: string, initialRows: NativeArray<T> | T[], initialMetadata: any, limit: number) {
-        this.modelName = modelName;
-        this.rows = A(initialRows);
-        this.metadata = initialMetadata;
-        this.limit = limit;
+    constructor(args: PaginationArgs<T, M>) {
+        this.modelName = args.context;
+        this.setConfigs(args);
+    }
+
+    /**
+     * Sets only pagination configs that are passed in the args
+     * @param {PaginationArgs<T, M>} args
+     */
+    @action
+    setConfigs(args: PaginationArgs<T, M>) {
+        if(args.context !== undefined)              this.context = args.context;
+        if(args.modelName !== undefined)            this.modelName = args.modelName;
+        if(args.rows !== undefined)                 this.rows = A(args.rows);
+        if(args.metadata !== undefined)             this.metadata = args.metadata;
+        if(args.limit !== undefined)                this.limit = args.limit;
+        if(args.filterList !== undefined)           this.filterList = args.filterList;
+        if(args.includeList !== undefined)          this.includeList = args.includeList;
+        if(args.sorts !== undefined)                this.sorts = args.sorts;
+        if(args.pagingRootKey !== undefined)        this.pagingRootKey = args.pagingRootKey;
+        if(args.filterRootKey !== undefined)        this.filterRootKey = args.filterRootKey;
+        if(args.includeKey !== undefined)           this.includeKey = args.includeKey;
+        if(args.includeKey !== undefined)           this.includeKey = args.includeKey;
+        if(args.sortKey !== undefined)              this.sortKey = args.sortKey;
+        if(args.serverDateFormat !== undefined)     this.serverDateFormat = args.serverDateFormat;
+        if(args.processQueryParams !== undefined)   this.processQueryParams = args.processQueryParams;
+        if(args.onChangeSorting !== undefined)      this.onChangeSorting = args.onChangeSorting;
+
         this.hasMore = this.rows.length >= this.limit;
     }
 
@@ -46,22 +102,27 @@ export class Pagination<T extends DS.Model> {
             this.clearModels();
         }
 
-        const offset = this.offset;
-        const limit = this.limit;
-        //TODO allow passing in a custom query param "processor" function to buildQueryParams()
-        //that is given the final built params/offset/limit values and can  return a new object
-
-        //TODO need to handle grabbing current controller queryParam values and other serverQueryParam filters
-        const queryParams = buildQueryParams<T>(this, offset, limit);
+        const queryParams = buildQueryParams({
+            context: this.context,
+            offset: this.offset,
+            limit: this.limit,
+            filterList: this.filterList,
+            includeList: this.includeList,
+            sorts: this.sorts,
+            pagingRootKey: this.pagingRootKey,
+            filterRootKey: this.filterRootKey,
+            includeKey: this.includeKey,
+            sortKey: this.sortKey,
+            serverDateFormat: this.serverDateFormat,
+            processQueryParams: this.processQueryParams
+        });
 
         try {
             this.isLoading = true;
-            //TODO beforeLoad/afterLoad hooks
             const result = await this.queryModels(queryParams);
             const rows = result.toArray();
-            this.hasMore = rows.length >= limit;
-            //@ts-ignore TODO meta does exist, or is `result` typed wrong?
-            this.metadata = result.meta ?? {};
+            this.hasMore = rows.length >= this.limit;
+            this.metadata = result.meta;
             this.rows.pushObjects(rows);
             return rows;
         } finally {
@@ -70,9 +131,10 @@ export class Pagination<T extends DS.Model> {
     }
 
     @action
-    queryModels(queryParams: any): DS.AdapterPopulatedRecordArray<T> {
+    async queryModels(queryParams: any): Promise<RecordArrayWithMeta<T>> {
         //TODO if provided, call method that provides custom query records logic instead
-        return this.store.query(this.modelName, queryParams);
+        const results = await this.store.query(this.modelName, queryParams) as RecordArrayWithMeta<T>;
+        return results;
     }
 
     @action
@@ -100,21 +162,40 @@ export class Pagination<T extends DS.Model> {
     }
 
     @action
-    changeSorting() {
-        //TODO ember-table compatible update action
+    async changeSorting(newSorts: Sorting[]) {
+        this.sorts = newSorts.map((col) =>
+            `${!col.isAscending ? '-' : ''}${col.sortPath ?? col.valuePath}`
+        );
+
+        //allow the parent context to store and/or modify updates to sorts
+        if(this.onChangeSorting) {
+            const processedSorts = await this.onChangeSorting(this.sorts, newSorts);
+            if(processedSorts) {
+                this.sorts = processedSorts;
+            }
+        }
+
+        return this.reloadModels();
+    }
+
+    @action
+    reset() {
+        this.clearModels();
+        this.hasMore = true;
+        this.isLoading = false;
     }
 }
 
-//TODO additional hooks/customization properties (convert args to a single object?)
-const usePagination = <T extends DS.Model>(
-    parent: any,
-    modelName: string,
-    rows: NativeArray<T> | T[],
-    metadata: any,
-    limit: number = 20,
-) => {
-    const owner = getOwner(parent);
-    const paginator = new Pagination<T>(modelName, rows, metadata, limit)
+/**
+ * Creates and returns a new Pagination instance and binds its owner to be the same as
+ * that of its parent "context" (e.g. Controller, Component, etc).
+ * In most cases, this returned instance should be assigned to a @tracked property
+ * on its parent context, so that it can be accessed on the associated template
+ * @param {PaginationArgs} args
+ */
+const usePagination = <T extends DS.Model, M = ResponseMetadata>(args: PaginationArgs<T, M>) => {
+    const owner = getOwner(args.context);
+    const paginator = new Pagination<T, M>(args)
     setOwner(paginator, owner)
     return paginator;
 };
