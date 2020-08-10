@@ -16,7 +16,7 @@ export default class List extends Controller {
     @tracked mappedFilter = 'abc';
 
     //sorts
-    @tracked sortsOne = ['sortA', '-sortB'];
+    @tracked sorts = ['sortA', '-sortB'];
     @tracked sortsTwo = ['-sortC', 'sortD'];
 
     get totalPages() {
@@ -35,8 +35,8 @@ export default class List extends Controller {
     }
 
     @action
-    onChangeSortingOne(sorts: string[]) {
-        this.sortsOne = sorts;
+    onChangeSorting(sorts: string[]) {
+        this.sorts = sorts;
     }
 }
 

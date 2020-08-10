@@ -7,6 +7,9 @@ import ListController from '../controllers/list';
 import Customer from '../models/customer';
 import usePagination, { RecordArrayWithMeta } from '@gavant/ember-pagination/hooks/pagination';
 
+const filters = ['foo', 'bar', 'baz'];
+const includes = ['someRel', 'anotherRel.foo'];
+
 export default class List extends Route {
     @service store!: DS.Store;
 
@@ -14,9 +17,9 @@ export default class List extends Route {
         const controller = this.controllerFor(this.routeName) as ListController;
         const params = buildQueryParams({
             context: controller,
-            sorts: controller.sortsOne,
-            filterList: ['foo', 'bar', 'baz'],
-            includeList: ['someRel', 'anotherRel.foo'],
+            sorts: controller.sorts,
+            filterList: filters,
+            includeList: includes,
         });
 
         return this.store.query('customer', params);
@@ -29,10 +32,10 @@ export default class List extends Route {
             rows: model.toArray(),
             metadata: model.meta,
             limit: 9,
-            sorts: controller.sortsOne,
-            filterList: ['foo', 'bar', 'baz'],
-            includeList: ['someRel', 'anotherRel.foo'],
-            onChangeSorting: controller.onChangeSortingOne
+            sorts: controller.sorts,
+            filterList: filters,
+            includeList: includes,
+            onChangeSorting: controller.onChangeSorting
         });
 
         controller.paginatorTwo = usePagination<Customer>({
