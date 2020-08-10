@@ -21,15 +21,10 @@ export interface Sorting {
     isAscending: boolean;
 }
 
-export interface PaginationArgs<T extends DS.Model, M = ResponseMetadata> {
-    context: any;
-    modelName: string;
-    rows: NativeArray<T> | T[];
-    metadata: M;
+export interface PaginationConfigs {
     limit?: number;
     filterList?: string[];
     includeList?: string[];
-    sorts?: string[];
     pagingRootKey?: string | null;
     filterRootKey?: string | null;
     includeKey?: string;
@@ -39,25 +34,32 @@ export interface PaginationArgs<T extends DS.Model, M = ResponseMetadata> {
     onChangeSorting?: (sorts: string[], newSorts?: Sorting[]) => Promise<string[] | undefined> | void;
 }
 
+export interface PaginationArgs<T extends DS.Model, M = ResponseMetadata>  extends PaginationConfigs {
+    context: any;
+    modelName: string;
+    rows: NativeArray<T> | T[];
+    metadata?: M;
+    sorts?: string[];
+}
+
 export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     @service store!: DS.Store;
     @service router!: RouterService;
 
+    config: PaginationConfigs = {
+        filterList: [],
+        includeList: [],
+        limit: 20,
+        pagingRootKey: 'page',
+        filterRootKey: 'filter',
+        includeKey: 'include',
+        sortKey: 'sort',
+        serverDateFormat: 'YYYY-MM-DDTHH:mm:ss'
+    };
+
     context: any;
     modelName: string;
-    limit: number = 20;
-    filterList: string[] = [];
-    includeList: string[] = [];
-    sorts: string[] = [];
-
-    pagingRootKey: string | null = 'page';
-    filterRootKey: string | null = 'filter';
-    includeKey: string = 'include';
-    sortKey: string = 'sort';
-    serverDateFormat: string = 'YYYY-MM-DDTHH:mm:ss';
-    processQueryParams: (params: any) => any = (params: any) => params;
-    onChangeSorting?: (sorts: string[], newSorts?: Sorting[]) => Promise<string[] | undefined> | void;
-
+    sorts: string[] | undefined = [];
     @tracked rows: NativeArray<T> | T[] = A();
     @tracked metadata: M | undefined;
     @tracked hasMore: boolean = true;
@@ -81,34 +83,41 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * @param {PaginationArgs<T, M>} args
      */
     constructor(args: PaginationArgs<T, M>) {
-        this.modelName = args.context;
+        //set main paginator state
+        this.context = args.context;
+        this.modelName = args.modelName;
+        this.rows = args.rows;
+        this.metadata = args.metadata;
+        this.sorts = args.sorts;
+
+        //set configs from initial args
+        delete args.context;
+        delete args.modelName;
+        delete args.rows;
+        delete args.metadata;
+        delete args.sorts;
         this.setConfigs(args);
     }
 
     /**
-     * Sets only pagination configs that are passed in the args
-     * @param {PaginationArgs<T, M>} args
+     * Sets various pagination configurations
+     * @param {PaginationConfigs} args
      */
     @action
-    setConfigs(args: PaginationArgs<T, M>) {
-        if(args.context !== undefined)              this.context = args.context;
-        if(args.modelName !== undefined)            this.modelName = args.modelName;
-        if(args.rows !== undefined)                 this.rows = A(args.rows);
-        if(args.metadata !== undefined)             this.metadata = args.metadata;
-        if(args.limit !== undefined)                this.limit = args.limit;
-        if(args.filterList !== undefined)           this.filterList = args.filterList;
-        if(args.includeList !== undefined)          this.includeList = args.includeList;
-        if(args.sorts !== undefined)                this.sorts = args.sorts;
-        if(args.pagingRootKey !== undefined)        this.pagingRootKey = args.pagingRootKey;
-        if(args.filterRootKey !== undefined)        this.filterRootKey = args.filterRootKey;
-        if(args.includeKey !== undefined)           this.includeKey = args.includeKey;
-        if(args.includeKey !== undefined)           this.includeKey = args.includeKey;
-        if(args.sortKey !== undefined)              this.sortKey = args.sortKey;
-        if(args.serverDateFormat !== undefined)     this.serverDateFormat = args.serverDateFormat;
-        if(args.processQueryParams !== undefined)   this.processQueryParams = args.processQueryParams;
-        if(args.onChangeSorting !== undefined)      this.onChangeSorting = args.onChangeSorting;
+    setConfigs(config: PaginationConfigs) {
+        this.config = { ...this.config,  ...config };
+        this.hasMore = this.rows.length >= this.config.limit!;
+    }
 
-        this.hasMore = this.rows.length >= this.limit;
+    /**
+     * Utility method for completely replacing the current rows array/metadata
+     * @param {NativeArray<T> | T[]} rows
+     * @param {M} metadata
+     */
+    @action
+    setRows(rows: NativeArray<T> | T[], metadata?: M) {
+        this.rows = rows;
+        this.metadata = metadata;
     }
 
     /**
@@ -126,23 +135,23 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         const queryParams = buildQueryParams({
             context: this.context,
             offset: this.offset,
-            limit: this.limit,
-            filterList: this.filterList,
-            includeList: this.includeList,
             sorts: this.sorts,
-            pagingRootKey: this.pagingRootKey,
-            filterRootKey: this.filterRootKey,
-            includeKey: this.includeKey,
-            sortKey: this.sortKey,
-            serverDateFormat: this.serverDateFormat,
-            processQueryParams: this.processQueryParams
+            limit: this.config.limit,
+            filterList: this.config.filterList,
+            includeList: this.config.includeList,
+            pagingRootKey: this.config.pagingRootKey,
+            filterRootKey: this.config.filterRootKey,
+            includeKey: this.config.includeKey,
+            sortKey: this.config.sortKey,
+            serverDateFormat: this.config.serverDateFormat,
+            processQueryParams: this.config.processQueryParams
         });
 
         try {
             this.isLoading = true;
             const result = await this.queryModels(queryParams);
             const rows = result.toArray();
-            this.hasMore = rows.length >= this.limit;
+            this.hasMore = rows.length >= this.config.limit!;
             this.metadata = result.meta;
             this.rows.pushObjects(rows);
             return rows;
@@ -225,8 +234,8 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         );
 
         //allow the parent context to store and/or modify updates to sorts
-        if(this.onChangeSorting) {
-            const processedSorts = await this.onChangeSorting(this.sorts, newSorts);
+        if(this.config.onChangeSorting) {
+            const processedSorts = await this.config.onChangeSorting(this.sorts, newSorts);
             if(processedSorts) {
                 this.sorts = processedSorts;
             }
