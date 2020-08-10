@@ -275,8 +275,8 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
  */
 const usePagination = <T extends DS.Model, M = ResponseMetadata>(args: PaginationArgs<T, M>) => {
     const owner = getOwner(args.context);
-    const paginator = new Pagination<T, M>(args)
-    setOwner(paginator, owner)
+    const paginator = new Pagination<T, M>(args);
+    setOwner(paginator, owner);
     return paginator;
 };
 
