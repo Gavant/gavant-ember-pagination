@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## v3.0.0-beta.0
+
+### Pull Requests
+
+- [#8](https://github.com/Gavant/gavant-ember-pagination/pull/8)  Pagination Hook  *by [Gavant/feature](https://github.com/Gavant/feature)*
+
 ## v1.0.5
 
 - Add more explicit types to `ControllerPagination` mixin
