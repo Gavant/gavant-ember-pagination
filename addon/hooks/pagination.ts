@@ -7,7 +7,9 @@ import { A } from '@ember/array';
 import DS from 'ember-data';
 import RouterService from '@ember/routing/router-service';
 
-import { buildQueryParams, QueryParamsObj  } from '@gavant/ember-pagination/utils/query-params';
+import { buildQueryParams, QueryParamsObj } from '@gavant/ember-pagination/utils/query-params';
+
+const loadingRegex = /loading$/;
 
 export type RecordArrayWithMeta<T> = DS.AdapterPopulatedRecordArray<T> & { meta: any };
 
@@ -34,7 +36,7 @@ export interface PaginationConfigs {
     onChangeSorting?: (sorts: string[], newSorts?: Sorting[]) => Promise<string[] | undefined> | void;
 }
 
-export interface PaginationArgs<T extends DS.Model, M = ResponseMetadata>  extends PaginationConfigs {
+export interface PaginationArgs<T extends DS.Model, M = ResponseMetadata> extends PaginationConfigs {
     context: any;
     modelName: string;
     models: NativeArray<T> | T[];
@@ -46,6 +48,11 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     @service store!: DS.Store;
     @service router!: RouterService;
 
+    /**
+     * Configuration properties used to customize request parameters
+     * @type {PaginationConfigs}
+     * @memberof Pagination
+     */
     config: PaginationConfigs = {
         filterList: [],
         includeList: [],
@@ -57,23 +64,88 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         serverDateFormat: 'YYYY-MM-DDTHH:mm:ss'
     };
 
+    /**
+     * The parent context object, usually a Controller or Component
+     * @type {*}
+     * @memberof Pagination
+     */
     context: any;
-    modelName: string;
-    sorts: string[] | undefined = [];
-    @tracked models: NativeArray<T> | T[] = A();
-    @tracked metadata: M | undefined;
-    @tracked hasMore: boolean = true;
-    @tracked isLoading: boolean = false;
 
-    get isLoadingRoute() {
-        return this.router.currentRouteName.match(/loading$/);
+    /**
+     * The name of Ember Data model being paginated
+     * @type {String}
+     * @memberof Pagination
+     */
+    modelName: string;
+
+    /**
+     * An array of sort property names sent on requests to sort the results
+     * @type {(String[] | undefined)}
+     * @memberof Pagination
+     */
+    sorts: string[] | undefined = [];
+
+    /**
+     * The array of all the models currently loaded from pagination requests
+     * @type {(NativeArray<T> | T[])}
+     * @memberof Pagination
+     */
+    @tracked models: NativeArray<T> | T[] = A();
+
+    /**
+     * The current metadata returned by the most recent pagination request
+     * @type {(M | undefined)}
+     * @memberof Pagination
+     */
+    @tracked metadata: M | undefined;
+
+    /**
+     * Whether or not the API may have more results, based on the defined limit
+     * and the number of results returned by the last request
+     * @type {Boolean}
+     * @memberof Pagination
+     */
+    @tracked hasMore: boolean = true;
+
+    /**
+     * Tracks when a pagination request is currently in progress
+     * Templates and application code should use `isLoadingModels` instead
+     * @private
+     * @type {Boolean}
+     * @memberof Pagination
+     */
+    @tracked private isLoading: boolean = false;
+
+    /**
+     * Whether or not a loading substate route is currently rendered
+     * @readonly
+     * @type {Boolean}
+     * @memberof Pagination
+     */
+    get isLoadingRoute(): boolean {
+        return loadingRegex.test(this.router.currentRouteName);
     }
 
-    get isLoadingModels() {
+    /**
+     * Returns true if a pagination request is currently in progress
+     * or a loading substate route is rendered. This should be used
+     * in templates/app code to check if the paginator is "loading"
+     * @readonly
+     * @type {Boolean}
+     * @memberof Pagination
+     */
+    get isLoadingModels(): boolean {
         return this.isLoading || this.isLoadingRoute;
     }
 
-    get offset() {
+    /**
+     * The current offset to send in pagination requests,
+     * based on the number of already loaded models
+     * @readonly
+     * @type {Number}
+     * @memberof Pagination
+     */
+    get offset(): number {
         return this.models.length;
     }
 
@@ -102,10 +174,11 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     /**
      * Sets various pagination configurations
      * @param {PaginationConfigs} args
+     * @memberof Pagination
      */
     @action
     setConfigs(config: PaginationConfigs) {
-        this.config = { ...this.config,  ...config };
+        this.config = { ...this.config, ...config };
         this.hasMore = this.models.length >= this.config.limit!;
     }
 
@@ -113,6 +186,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * Utility method for completely replacing the current models array/metadata
      * @param {NativeArray<T> | T[]} models
      * @param {M} metadata
+     * @memberof Pagination
      */
     @action
     setModels(models: NativeArray<T> | T[], metadata?: M) {
@@ -125,10 +199,11 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * page of results (or the first page, if reset is true)
      * @param {Boolean} reset
      * @returns {Promise<T[]>}
+     * @memberof Pagination
      */
     @action
     async loadModels(reset = false): Promise<T[]> {
-        if(reset) {
+        if (reset) {
             this.clearModels();
         }
 
@@ -164,16 +239,18 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * Makes the store.query() request using the provided query params object
      * @param {any} queryParams
      * @returns {Promise<RecordArrayWithMeta<T>>}
+     * @memberof Pagination
      */
     @action
     async queryModels(queryParams: any): Promise<RecordArrayWithMeta<T>> {
-        const results = await this.store.query(this.modelName, queryParams) as RecordArrayWithMeta<T>;
+        const results = (await this.store.query(this.modelName, queryParams)) as RecordArrayWithMeta<T>;
         return results;
     }
 
     /**
      * Loads the next page of models if there are more to load and is not currently loading
      * @returns {Promise<T[]> | null}
+     * @memberof Pagination
      */
     @action
     loadMoreModels(): Promise<T[]> | undefined {
@@ -187,6 +264,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     /**
      * Reloads the first page of models, alias for `loadModels(true)`
      * @returns {Promise<T[]>}
+     * @memberof Pagination
      */
     @action
     reloadModels() {
@@ -196,6 +274,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     /**
      * Reloads the first page of models w/filters applied, alias for `loadModels(true)`
      * @returns {Promise<T[]>}
+     * @memberof Pagination
      */
     @action
     filterModels() {
@@ -204,6 +283,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
 
     /**
      * Clears all current model models array
+     * @memberof Pagination
      */
     @action
     clearModels() {
@@ -214,6 +294,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * Deletes the model and removes it from the models array
      * @param {T} model
      * @returns {Promise<void>}
+     * @memberof Pagination
      */
     @action
     async removeModel(model: T) {
@@ -226,17 +307,16 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * Updates the current sorts, calls an onChangeSorting() handler if provided
      * and reloads the first page of models
      * @param {Sorting[]} newSorts
+     * @memberof Pagination
      */
     @action
     async changeSorting(newSorts: Sorting[]) {
-        this.sorts = newSorts.map((col) =>
-            `${!col.isAscending ? '-' : ''}${col.sortPath ?? col.valuePath}`
-        );
+        this.sorts = newSorts.map((col) => `${!col.isAscending ? '-' : ''}${col.sortPath ?? col.valuePath}`);
 
         //allow the parent context to store and/or modify updates to sorts
-        if(this.config.onChangeSorting) {
+        if (this.config.onChangeSorting) {
             const processedSorts = await this.config.onChangeSorting(this.sorts, newSorts);
-            if(processedSorts) {
+            if (processedSorts) {
                 this.sorts = processedSorts;
             }
         }
@@ -246,6 +326,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
 
     /**
      * Clears the current sorts and reloads the first page of models
+     * @memberof Pagination
      */
     @action
     clearSorting() {
@@ -257,6 +338,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * Sometimes useful in resetController() when the pagination may not
      * be recreated/overwritten on every transition, and you want to clear
      * it when leaving the page.
+     * @memberof Pagination
      */
     @action
     reset() {
