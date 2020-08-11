@@ -86,9 +86,9 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         //set main paginator state
         this.context = args.context;
         this.modelName = args.modelName;
-        this.rows = args.rows;
         this.metadata = args.metadata;
         this.sorts = args.sorts;
+        this.rows = A(args.rows);
 
         //set configs from initial args
         delete args.context;

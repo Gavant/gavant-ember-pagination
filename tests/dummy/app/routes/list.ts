@@ -2,10 +2,10 @@ import Route from '@ember/routing/route';
 import { inject as service } from '@ember/service';
 import DS from 'ember-data';
 import { buildQueryParams } from '@gavant/ember-pagination/utils/query-params';
+import usePagination, { RecordArrayWithMeta } from '@gavant/ember-pagination/hooks/pagination';
 
 import ListController from '../controllers/list';
 import Customer from '../models/customer';
-import usePagination, { RecordArrayWithMeta } from '@gavant/ember-pagination/hooks/pagination';
 
 const filters = ['foo', 'bar', 'baz'];
 const includes = ['someRel', 'anotherRel.foo'];

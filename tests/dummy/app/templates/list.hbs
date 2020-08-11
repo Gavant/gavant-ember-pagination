@@ -76,7 +76,7 @@
             <button
                 type="button"
                 class="btn btn-outline-primary"
-                disabled={{if this.paginatorTwo.hasMore (if this.paginator.isLoading true false) true}}
+                disabled={{if this.paginatorTwo.hasMore (if this.paginatorTwo.isLoading true false) true}}
                 {{on "click" this.paginatorTwo.filterModels}}
             >
                 {{if this.paginatorTwo.isLoading "Loading..." "Filter"}}
