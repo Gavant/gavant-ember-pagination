@@ -7,7 +7,7 @@ import { A } from '@ember/array';
 import DS from 'ember-data';
 import RouterService from '@ember/routing/router-service';
 
-import { buildQueryParams  } from '@gavant/ember-pagination/utils/query-params';
+import { buildQueryParams, QueryParamsObj  } from '@gavant/ember-pagination/utils/query-params';
 
 export type RecordArrayWithMeta<T> = DS.AdapterPopulatedRecordArray<T> & { meta: any };
 
@@ -30,14 +30,14 @@ export interface PaginationConfigs {
     includeKey?: string;
     sortKey?: string;
     serverDateFormat?: string;
-    processQueryParams?: (params: any) => any;
+    processQueryParams?: (params: QueryParamsObj) => QueryParamsObj;
     onChangeSorting?: (sorts: string[], newSorts?: Sorting[]) => Promise<string[] | undefined> | void;
 }
 
 export interface PaginationArgs<T extends DS.Model, M = ResponseMetadata>  extends PaginationConfigs {
     context: any;
     modelName: string;
-    rows: NativeArray<T> | T[];
+    models: NativeArray<T> | T[];
     metadata?: M;
     sorts?: string[];
 }
@@ -60,7 +60,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     context: any;
     modelName: string;
     sorts: string[] | undefined = [];
-    @tracked rows: NativeArray<T> | T[] = A();
+    @tracked models: NativeArray<T> | T[] = A();
     @tracked metadata: M | undefined;
     @tracked hasMore: boolean = true;
     @tracked isLoading: boolean = false;
@@ -74,12 +74,12 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     }
 
     get offset() {
-        return this.rows.length;
+        return this.models.length;
     }
 
     /**
      * Sets the initial pagination data/configuration which at minimum, requires
-     * a context, modelName, and initial rows/metadata
+     * a context, modelName, and initial models/metadata
      * @param {PaginationArgs<T, M>} args
      */
     constructor(args: PaginationArgs<T, M>) {
@@ -88,12 +88,12 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         this.modelName = args.modelName;
         this.metadata = args.metadata;
         this.sorts = args.sorts;
-        this.rows = A(args.rows);
+        this.models = A(args.models);
 
         //set configs from initial args
         delete args.context;
         delete args.modelName;
-        delete args.rows;
+        delete args.models;
         delete args.metadata;
         delete args.sorts;
         this.setConfigs(args);
@@ -106,17 +106,17 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     @action
     setConfigs(config: PaginationConfigs) {
         this.config = { ...this.config,  ...config };
-        this.hasMore = this.rows.length >= this.config.limit!;
+        this.hasMore = this.models.length >= this.config.limit!;
     }
 
     /**
-     * Utility method for completely replacing the current rows array/metadata
-     * @param {NativeArray<T> | T[]} rows
+     * Utility method for completely replacing the current models array/metadata
+     * @param {NativeArray<T> | T[]} models
      * @param {M} metadata
      */
     @action
-    setRows(rows: NativeArray<T> | T[], metadata?: M) {
-        this.rows = rows;
+    setModels(models: NativeArray<T> | T[], metadata?: M) {
+        this.models = models;
         this.metadata = metadata;
     }
 
@@ -150,11 +150,11 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         try {
             this.isLoading = true;
             const result = await this.queryModels(queryParams);
-            const rows = result.toArray();
-            this.hasMore = rows.length >= this.config.limit!;
+            const models = result.toArray();
+            this.hasMore = models.length >= this.config.limit!;
             this.metadata = result.meta;
-            this.rows.pushObjects(rows);
-            return rows;
+            this.models.pushObjects(models);
+            return models;
         } finally {
             this.isLoading = false;
         }
@@ -176,12 +176,12 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * @returns {Promise<T[]> | null}
      */
     @action
-    loadMoreModels(): Promise<T[]> | null {
+    loadMoreModels(): Promise<T[]> | undefined {
         if (this.hasMore && !this.isLoadingModels) {
             return this.loadModels();
         }
 
-        return null;
+        return undefined;
     }
 
     /**
@@ -203,22 +203,22 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     }
 
     /**
-     * Clears all current model rows array
+     * Clears all current model models array
      */
     @action
     clearModels() {
-        this.rows = A();
+        this.models = A();
     }
 
     /**
-     * Deletes the model and removes it from the rows array
+     * Deletes the model and removes it from the models array
      * @param {T} model
      * @returns {Promise<void>}
      */
     @action
     async removeModel(model: T) {
         const result = await model.destroyRecord();
-        this.rows.removeObject(result);
+        this.models.removeObject(result);
         return result;
     }
 
@@ -253,7 +253,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     }
 
     /**
-     * Clears all models from the rows array and resets the current state
+     * Clears all models from the models array and resets the current state
      * Sometimes useful in resetController() when the pagination may not
      * be recreated/overwritten on every transition, and you want to clear
      * it when leaving the page.

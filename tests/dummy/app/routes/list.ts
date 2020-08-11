@@ -20,6 +20,7 @@ export default class List extends Route {
             sorts: controller.sorts,
             filterList: filters,
             includeList: includes,
+            processQueryParams: controller.processQueryParams
         });
 
         return this.store.query('customer', params);
@@ -29,24 +30,26 @@ export default class List extends Route {
         controller.paginator = usePagination<Customer>({
             context: controller,
             modelName: 'customer',
-            rows: model.toArray(),
+            models: model.toArray(),
             metadata: model.meta,
             limit: 9,
             sorts: controller.sorts,
             filterList: filters,
             includeList: includes,
-            onChangeSorting: controller.onChangeSorting
+            onChangeSorting: controller.onChangeSorting,
+            processQueryParams: controller.processQueryParams
         });
 
         controller.paginatorTwo = usePagination<Customer>({
             context: controller,
             modelName: 'customer',
-            rows: model.toArray(),
+            models: model.toArray(),
             metadata: model.meta,
             limit: 9,
             sorts: controller.sortsTwo,
             filterList: ['foo', 'bar', 'baz', 'customFilter:mappedFilter'],
-            includeList: ['yetAnotherRel', 'imSomethingElse']
+            includeList: ['yetAnotherRel', 'imSomethingElse'],
+            processQueryParams: controller.processQueryParams
         });
 
         super.setupController(controller, model);

@@ -3,6 +3,10 @@ import { isArray } from '@ember/array';
 import { isEmpty } from '@ember/utils';
 import moment from 'moment';
 
+export interface QueryParamsObj {
+    [x: string]: any;
+}
+
 interface buildQueryParamsArgs {
     context: any;
     offset?: number;
@@ -15,7 +19,7 @@ interface buildQueryParamsArgs {
     includeKey?: string;
     sortKey?: string;
     serverDateFormat?: string;
-    processQueryParams?: (params: any) => any;
+    processQueryParams?: (params: QueryParamsObj) => QueryParamsObj;
 }
 
 interface getParamsObjectArgs {
@@ -31,7 +35,7 @@ interface getParamsObjectArgs {
  * Builds a query params object to use for paginated api requests using the "context" (e.g. Controller/Component)
  * to get filter values, along with additional passed in configuration. Optimized for JSON-API spec APIs by default.
  * @param {buildQueryParamsArgs} Config
- * @returns {Object} Object with query params to send to server
+ * @returns {QueryParamsObj} Object with query params to send to server
  */
 export function buildQueryParams({
     context,
@@ -45,8 +49,8 @@ export function buildQueryParams({
     includeKey = 'include',
     sortKey = 'sort',
     serverDateFormat = 'YYYY-MM-DDTHH:mm:ss',
-    processQueryParams = (params: any) => params
-}: buildQueryParamsArgs) {
+    processQueryParams = (params: QueryParamsObj) => params
+}: buildQueryParamsArgs): QueryParamsObj {
     let queryParams = getParamsObject({
         context,
         filterList,
@@ -78,7 +82,7 @@ export function buildQueryParams({
 /**
  * Gets the parameter values from the "context" (e.g. Controller/Component)
  * @param {getParamsObjectArgs} Config
- * @returns {Object} Object with query params to send to server
+ * @returns {QueryParamsObj} Object with query params to send to server
  */
 export function getParamsObject({
     context,
@@ -87,8 +91,8 @@ export function getParamsObject({
     sorts = [],
     sortKey = 'sort',
     serverDateFormat = 'YYYY-MM-DDTHH:mm:ss'
-}: getParamsObjectArgs) {
-    let params: any = {};
+}: getParamsObjectArgs): QueryParamsObj {
+    let params: QueryParamsObj = {};
     let filterRoot = params;
 
     if(filterRootKey) {
@@ -129,9 +133,9 @@ export function getParamsObject({
 /**
  * Remove empty(using [isEmpty](https://api.emberjs.com/ember/release/functions/@ember%2Futils/isEmpty))query params from the query params object thats built from `buildQueryParams`
  * @param {any} queryParams The query params object
- * @returns {Object} object with empty query params removed
+ * @returns {QueryParamsObj} object with empty query params removed
  */
-export function removeEmptyQueryParams(queryParams: any) {
+export function removeEmptyQueryParams(queryParams: QueryParamsObj): QueryParamsObj {
     for(let i in queryParams) {
         if(isEmpty(queryParams[i])) {
             delete queryParams[i];

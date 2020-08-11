@@ -40,7 +40,7 @@
                 {{if this.paginator.isLoading "Loading..." "Custom reload action"}}
             </button>
         </p>
-        {{#each this.paginator.rows as |customer|}}
+        {{#each this.paginator.models as |customer|}}
             <h5>
                 {{customer.firstName}} {{customer.lastName}}
             </h5>
@@ -92,7 +92,7 @@
                 {{if this.paginatorTwo.isLoading "Loading..." "Reload"}}
             </button>
         </p>
-        {{#each this.paginatorTwo.rows as |customer|}}
+        {{#each this.paginatorTwo.models as |customer|}}
             <h5>
                 {{customer.firstName}} {{customer.lastName}}
             </h5>
