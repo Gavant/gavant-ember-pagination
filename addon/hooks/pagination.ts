@@ -343,6 +343,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
     @action
     reset() {
         this.clearModels();
+        this.metadata = undefined;
         this.hasMore = true;
         this.isLoading = false;
     }
