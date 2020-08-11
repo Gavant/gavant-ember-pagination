@@ -1,18 +1,78 @@
-import { set, setProperties } from '@ember/object';
+import { setProperties, set } from '@ember/object';
 import { assert } from '@ember/debug';
 import DS from 'ember-data';
-import { PaginationController, buildQueryParams } from '@gavant/ember-pagination/utils/query-params';
+import { buildQueryParams } from '@gavant/ember-pagination/utils/query-params';
+import Route from '@ember/routing/route';
+import Transition from '@ember/routing/-private/transition';
+import { PaginationController, GenericConstructor, PaginationControllerClass } from './controller-pagination';
 
-export type ConcreteSubclass<T> = new(...args: any[]) => T;
+export type PaginationRouteClass = GenericConstructor<Route>;
+export interface PaginationRoute extends Route {
+    getControllerParams(routeName?: string): any;
+    resetController(
+        controller: InstanceType<GenericConstructor<PaginationController>>,
+        isExiting: boolean,
+        transition: Transition
+    ): void;
+    setupController(controller: InstanceType<GenericConstructor<PaginationController>>, model: any): void;
+}
 
-export default function RoutePaginationClass<T extends ConcreteSubclass<any>>(RouteSubclass: T) {
-    class PaginationRouteClass extends RouteSubclass {
+/**
+ * Adds functionality `modelName`, `metadata`, and `hasMore` to the controller
+ * @param controller - The controller you want the functionality to be added on to
+ * @param model - The result returned from a `store.query`
+ */
+export function setupController(controller: InstanceType<GenericConstructor<PaginationController>>, model: any) {
+    assert(
+        'Model is not an instanceof DS.AdapterPopulatedRecordArray. In order to use the RoutePaginationMixin, the model returned must be an instance of DS.AdapterPopulatedRecordArray or DS.RecordArray which comes from using store.query',
+        model instanceof DS.AdapterPopulatedRecordArray || model instanceof DS.RecordArray
+    );
+
+    setProperties(controller, {
+        modelName: model.type.modelName,
+        metadata: model.meta,
+        hasMore: model.length >= controller.limit
+    } as any);
+}
+
+/**
+ * Resets the controller by setting the model to be null
+ * @param controller - The controller you want the functionality to be added on to
+ * @param isExiting - Is the controller exiting
+ */
+export function resetController(
+    controller: InstanceType<GenericConstructor<PaginationController>>,
+    isExiting: boolean
+) {
+    if (isExiting) {
+        controller.model = null;
+    }
+}
+
+/**
+ * Get the controller params
+ * @param routeName The name of the route you want to get the controller parameters for.
+ * Defaults to current route if nothing is passed in
+ * Should be passed in using `/` separators i.e. `accounts/index`
+ * @returns - Controller query params
+ */
+export function getControllerParams(controller: InstanceType<GenericConstructor<PaginationController>>): any {
+    return buildQueryParams(controller);
+}
+
+export function RoutePagination<T extends PaginationRouteClass>(
+    RouteSubclass: T
+): {
+    new (...args: any[]): PaginationRoute;
+    prototype: PaginationRoute;
+} & T {
+    class PaginationClass extends RouteSubclass implements PaginationRoute {
         /**
          * Adds functionality `modelName`, `metadata`, and `hasMore` to the controller
          * @param controller - The controller you want the functionality to be added on to
          * @param model - The result returned from a `store.query`
          */
-        setupController(controller: PaginationController, model: any) {
+        setupController(controller: InstanceType<PaginationControllerClass>, model: any) {
             assert(
                 'Model is not an instanceof DS.AdapterPopulatedRecordArray. In order to use the RoutePaginationMixin, the model returned must be an instance of DS.AdapterPopulatedRecordArray or DS.RecordArray which comes from using store.query',
                 model instanceof DS.AdapterPopulatedRecordArray || model instanceof DS.RecordArray
@@ -35,8 +95,8 @@ export default function RoutePaginationClass<T extends ConcreteSubclass<any>>(Ro
          * Should be passed in using `/` separators i.e. `accounts/index`
          * @returns - Controller query params
          */
-        getControllerParams(this: PaginationController, routeName: string = this.routeName): any {
-            const controller = this.controllerFor(routeName);
+        getControllerParams(routeName: any = this.routeName): any {
+            const controller = this.controllerFor(routeName) as PaginationController;
             return buildQueryParams(controller);
         }
 
@@ -45,8 +105,8 @@ export default function RoutePaginationClass<T extends ConcreteSubclass<any>>(Ro
          * @param controller - The controller you want the functionality to be added on to
          * @param isExiting - Is the controller exiting
          */
-        resetController(controller: PaginationController, isExiting: boolean) {
-            super.resetController(controller, isExiting);
+        resetController(controller: InstanceType<PaginationControllerClass>, isExiting: boolean, transition: any) {
+            super.resetController(controller, isExiting, transition);
 
             if (isExiting) {
                 set(controller, 'model', null);
@@ -54,5 +114,5 @@ export default function RoutePaginationClass<T extends ConcreteSubclass<any>>(Ro
         }
     }
 
-    return PaginationRouteClass;
+    return PaginationClass;
 }

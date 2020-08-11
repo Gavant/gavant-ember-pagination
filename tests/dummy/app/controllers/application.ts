@@ -1,5 +1,5 @@
 import Controller from '@ember/controller';
-import ControllerPagination from '@gavant/ember-pagination/mixins/controller-pagination';
+import {ControllerPagination} from '@gavant/ember-pagination/mixins/controller-pagination';
 
 export default class Application extends ControllerPagination(Controller) {
     serverQueryParams = ['foo', 'bar', 'baz'];

@@ -2,21 +2,11 @@ import { get, set, getWithDefault } from '@ember/object';
 import { isArray } from '@ember/array';
 import { isEmpty } from '@ember/utils';
 import moment from 'moment';
-
-export interface PaginationController {
-    offset: number | undefined;
-    limit: number;
-    sort: string[];
-    modelName: string;
-    pagingRootKey: string | null;
-    filterRootKey: string | null;
-    includeKey: string;
-    [key: string]: any;
-}
+import { PaginationController, PaginationControllerClass } from '../mixins/controller-pagination';
 
 export enum sortDirection {
-    ascending = "asc",
-    descending = "desc"
+    ascending = 'asc',
+    descending = 'desc'
 }
 
 /**
@@ -34,12 +24,12 @@ export function buildQueryParams(
     queryParamListName: string = 'serverQueryParams',
     includeListName: string = 'include'
 ) {
-    const filterList: string[] = controller[queryParamListName];
-    const includeList: string[] = controller[includeListName];
+    const filterList: string[] = controller[queryParamListName as keyof PaginationController];
+    const includeList: string[] = controller[includeListName as keyof PaginationController];
     let queryParams = getParamsObject(filterList, controller);
     let pagingRoot = queryParams;
 
-    if(controller.pagingRootKey) {
+    if (controller.pagingRootKey) {
         queryParams[controller.pagingRootKey] = {};
         pagingRoot = queryParams[controller.pagingRootKey];
     }
@@ -47,7 +37,7 @@ export function buildQueryParams(
     pagingRoot.offset = getWithDefault(controller, 'offset', offset);
     pagingRoot.limit = getWithDefault(controller, 'limit', limit);
 
-    if(isArray(includeList) && !isEmpty(includeList)) {
+    if (isArray(includeList) && !isEmpty(includeList)) {
         queryParams[controller.includeKey] = includeList.join(',');
     }
 
@@ -60,26 +50,26 @@ export function buildQueryParams(
  * @param context - The pagination controller instance
  * @returns - Object with query params to send to server
  */
-export function getParamsObject(parameters: string[] | undefined, context: PaginationController) {
+export function getParamsObject(parameters: string[] | undefined, context: InstanceType<PaginationControllerClass>) {
     let params: any = {};
     let filterRoot = params;
 
-    if(context.filterRootKey) {
+    if (context.filterRootKey) {
         params[context.filterRootKey] = {};
         filterRoot = params[context.filterRootKey];
     }
 
-    if(isArray(parameters)) {
+    if (isArray(parameters)) {
         parameters.forEach((param: string) => {
             let key = param;
             let valueKey = param;
             let paramArray: string[];
-            if(param.indexOf(':') !== -1) {
+            if (param.indexOf(':') !== -1) {
                 paramArray = param.split(':');
                 key = paramArray[0];
                 valueKey = paramArray[1];
             }
-            let value = get(context, valueKey);
+            let value = get(context, valueKey as keyof PaginationController);
             if (moment.isMoment(value) || moment.isDate(value)) {
                 let serverDateFormat = getWithDefault(context, 'serverDateFormat', 'YYYY-MM-DDTHH:mm:ss');
                 value = moment(value).format(serverDateFormat);
@@ -90,8 +80,8 @@ export function getParamsObject(parameters: string[] | undefined, context: Pagin
         filterRoot = removeEmptyQueryParams(filterRoot);
     }
 
-    if(!isEmpty(get(context, 'sort'))) {
-        let sortProperty = get(context, 'sort').join(',')
+    if (!isEmpty(get(context, 'sort'))) {
+        let sortProperty = get(context, 'sort').join(',');
         set(params, 'sort', sortProperty);
     }
 
@@ -104,8 +94,8 @@ export function getParamsObject(parameters: string[] | undefined, context: Pagin
  * @returns - Object with no empty query params
  */
 export function removeEmptyQueryParams(queryParams: any) {
-    for(let i in queryParams) {
-        if(isEmpty(queryParams[i])) {
+    for (let i in queryParams) {
+        if (isEmpty(queryParams[i])) {
             delete queryParams[i];
         }
     }

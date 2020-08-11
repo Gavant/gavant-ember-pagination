@@ -1,3 +1,4 @@
+import { Ember } from 'ember';
 import { inject as service } from '@ember/service';
 import { action, computed, setProperties } from '@ember/object';
 import { readOnly, or } from '@ember/object/computed';
@@ -5,14 +6,65 @@ import { tryInvoke } from '@ember/utils';
 import NativeArray from '@ember/array/-private/native-array';
 import { reject } from 'rsvp';
 import { A } from '@ember/array';
-import { buildQueryParams, PaginationController, sortDirection } from '@gavant/ember-pagination/utils/query-params';
+
 import DS from 'ember-data';
 import RouterService from '@ember/routing/router-service';
+import Controller from '@ember/controller';
+import { buildQueryParams, sortDirection } from '../utils/query-params';
 
-export type ConcreteSubclass<T> = new(...args: any[]) => T;
+export type GenericConstructor<T> = new (...args: any[]) => T;
+export type PaginationControllerClass = GenericConstructor<PaginationController>;
 
-export default function ControllerPaginationClass<T extends ConcreteSubclass<any>>(ControllerSubclass: T) {
-    class PaginationControllerClass extends ControllerSubclass {
+export interface PaginationController extends Controller {
+    filterRootKey: string | null;
+    hasMore: boolean;
+    includeKey: string;
+    isLoadingPage: boolean;
+    isLoadingModels: boolean;
+    isLoadingRoute: RegExpMatchArray | null;
+    limit: number;
+    metadata?: {
+        [key: string]: any;
+    };
+    modelName: string;
+    offset: number | undefined;
+    pagesLoaded: number;
+    pagingRootKey: string | null;
+    serverDateFormat?: string;
+    serverQueryParams?: any[];
+    sort: string[];
+
+    changeSorting(sort: string[], dir: sortDirection, isSorted: boolean): Promise<unknown[]> | undefined;
+    clearFilters(): Promise<unknown[]> | undefined;
+    clearModels(): void;
+    clearSorting(): void;
+    fetchModels<T>(queryParams: any): PagingQuery<T>;
+    filter(): Promise<unknown[]> | undefined;
+    filterModels(): Promise<unknown[]> | undefined;
+    loadModels(reset: boolean): Promise<unknown[]> | undefined;
+    loadMoreModels(): Promise<unknown[]> | undefined;
+    reloadModels(): Promise<unknown[]> | undefined;
+    removeModel(model: DS.Model): Promise<DS.Model>;
+
+    _loadModels(reset: boolean): Promise<unknown[]>;
+}
+
+interface ArrayMeta {
+    meta?: any;
+}
+
+export type FulfilledPagingQuery<T> =
+    | (DS.AdapterPopulatedRecordArray<T> & ArrayMeta)
+    | (Ember.ArrayProxy<T> & ArrayMeta);
+export type PagingQuery<T> = Promise<DS.AdapterPopulatedRecordArray<T> & ArrayMeta> | FulfilledPagingQuery<T>;
+
+export function ControllerPagination<U extends GenericConstructor<Controller>>(
+    ControllerSubclass: U
+): {
+    new (...args: any[]): PaginationController;
+    prototype: PaginationController;
+} {
+    class PaginationClass extends ControllerSubclass implements PaginationController {
         @service router!: RouterService;
         sort: NativeArray<any> = A();
         hasMore: boolean = true;
@@ -21,6 +73,13 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
         pagingRootKey: string | null = 'page';
         filterRootKey: string | null = 'filter';
         includeKey: string = 'include';
+        modelName = '';
+        metadata?: {
+            [key: string]: any;
+        } = {};
+
+        serverQueryParams = <any>[];
+        serverDateFormat = undefined;
 
         @or('isLoadingPage', 'isLoadingRoute') isLoadingModels!: boolean;
         @readOnly('model.length') offset: number | undefined;
@@ -35,16 +94,16 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
             return Math.ceil(this.model.length / this.limit);
         }
 
-        async _loadModels(this: PaginationController, reset: boolean) {
+        async _loadModels(reset: boolean) {
             this.set('isLoadingPage', true);
-            if(reset) {
+            if (reset) {
                 this.clearModels();
             }
 
             const offset = this.offset;
             const limit = this.limit;
             const queryParams = buildQueryParams(this, offset, limit);
-            let models = [];
+            let models: any = [];
             try {
                 const result = await this.fetchModels(queryParams);
                 models = result.toArray();
@@ -54,7 +113,7 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
                 });
 
                 tryInvoke(this.model, 'pushObjects', [models]);
-            } catch(errors) {
+            } catch (errors) {
                 reject(errors);
             }
 
@@ -67,9 +126,9 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
          * It should return a promise, which resolves to an array-like object (such as a DS.RecordArray)
          * @returns - the result of `store.query`
          */
-        fetchModels(this: PaginationController, queryParams: any) {
-            const modelName = this.modelName as never;
-            return this.store.query(modelName, queryParams);
+        fetchModels<T>(queryParams: any): PagingQuery<T> {
+            const modelName = this.modelName;
+            return this.store.query(modelName, queryParams) as PagingQuery<T>;
         }
 
         /**
@@ -77,7 +136,7 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
          * @param reset - Clear models
          * @returns - an array of models
          */
-        loadModels(this: PaginationController, reset: boolean = false) {
+        loadModels<T>(reset: boolean = false): Promise<T[]> | undefined {
             if (!this.isLoadingPage) {
                 return this._loadModels(reset);
             } else {
@@ -89,7 +148,7 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
          * Filter models
          * @returns - an array of models
          */
-        filterModels(this: PaginationController) {
+        filterModels() {
             return this.loadModels(true);
         }
 
@@ -105,7 +164,7 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
          * @returns - an array of models
          */
         @action
-        loadMoreModels(this: PaginationController) {
+        loadMoreModels() {
             return this.loadModels();
         }
 
@@ -114,7 +173,7 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
          * @returns - an array of models
          */
         @action
-        reloadModels(this: PaginationController) {
+        reloadModels() {
             return this.loadModels(true);
         }
 
@@ -124,12 +183,12 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
          * @returns - result of api call
          */
         @action
-        async removeModel(this: PaginationController, model: DS.Model) {
+        async removeModel(model: DS.Model) {
             try {
                 let result = await tryInvoke(model, 'destroyRecord');
                 this.model.removeObject(model);
                 return result;
-            } catch(error) {
+            } catch (error) {
                 return reject(error);
             }
         }
@@ -138,12 +197,12 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
          * Clear models
          */
         @action
-        clearModels(this: PaginationController) {
+        clearModels() {
             this.set('model', A());
         }
 
         @action
-        filter(this: PaginationController) {
+        filter() {
             return this.filterModels();
         }
 
@@ -155,11 +214,11 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
          * @returns - an array of models
          */
         @action
-        changeSorting(this: PaginationController, sort: string[], dir: sortDirection, isSorted: boolean) {
+        changeSorting(sort: string[], dir: sortDirection, isSorted: boolean) {
             const sorting = this.sort;
-            const sortedValue = `${dir === "desc" ? '-' : ''}${sort}`;
-            const oppositeSortedValue = `${dir === "asc" ? '-' : ''}${sort}`;
-            if(!isSorted) {
+            const sortedValue = `${dir === 'desc' ? '-' : ''}${sort}`;
+            const oppositeSortedValue = `${dir === 'asc' ? '-' : ''}${sort}`;
+            if (!isSorted) {
                 sorting.removeObject(sortedValue);
                 sorting.removeObject(oppositeSortedValue);
             } else if (!sorting.includes(oppositeSortedValue) && !sorting.includes(sortedValue)) {
@@ -178,11 +237,11 @@ export default function ControllerPaginationClass<T extends ConcreteSubclass<any
          * @returns - an array of models
          */
         @action
-        clearFilters(this: PaginationController) {
+        clearFilters() {
             this.serverQueryParams.forEach((param: any) => this.set(param, null));
             return this.filterModels();
         }
     }
 
-    return PaginationControllerClass;
+    return PaginationClass;
 }
