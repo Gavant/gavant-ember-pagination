@@ -23,10 +23,10 @@ interface buildQueryParamsArgs {
 }
 
 interface getParamsObjectArgs {
-    context: any,
+    context: any;
     filterList?: string[];
     filterRootKey?: string | null;
-    sorts?: string[],
+    sorts?: string[];
     sortKey?: string;
     serverDateFormat?: string;
 }
@@ -62,7 +62,7 @@ export function buildQueryParams({
 
     let pagingRoot = queryParams;
 
-    if(pagingRootKey) {
+    if (pagingRootKey) {
         queryParams[pagingRootKey] = {};
         pagingRoot = queryParams[pagingRootKey];
     }
@@ -70,7 +70,7 @@ export function buildQueryParams({
     pagingRoot.offset = offset;
     pagingRoot.limit = limit;
 
-    if(isArray(includeList) && !isEmpty(includeList)) {
+    if (isArray(includeList) && !isEmpty(includeList)) {
         queryParams[includeKey] = includeList.join(',');
     }
 
@@ -95,18 +95,18 @@ export function getParamsObject({
     let params: QueryParamsObj = {};
     let filterRoot = params;
 
-    if(filterRootKey) {
+    if (filterRootKey) {
         params[filterRootKey] = {};
         filterRoot = params[filterRootKey];
     }
 
-    if(isArray(filterList)) {
+    if (isArray(filterList)) {
         filterList.forEach((param: string) => {
             let key = param;
             let valueKey = param;
             let paramArray: string[];
 
-            if(param.indexOf(':') !== -1) {
+            if (param.indexOf(':') !== -1) {
                 paramArray = param.split(':');
                 key = paramArray[0];
                 valueKey = paramArray[1];
@@ -123,8 +123,8 @@ export function getParamsObject({
         filterRoot = removeEmptyQueryParams(filterRoot);
     }
 
-    if(!isEmpty(sorts)) {
-        params[sortKey] = sorts.join(',')
+    if (!isEmpty(sorts)) {
+        params[sortKey] = sorts.join(',');
     }
 
     return params;
@@ -136,8 +136,8 @@ export function getParamsObject({
  * @returns {QueryParamsObj} object with empty query params removed
  */
 export function removeEmptyQueryParams(queryParams: QueryParamsObj): QueryParamsObj {
-    for(let i in queryParams) {
-        if(isEmpty(queryParams[i])) {
+    for (let i in queryParams) {
+        if (isEmpty(queryParams[i])) {
             delete queryParams[i];
         }
     }
