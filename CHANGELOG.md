@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## v3.0.0-beta.1
+
+### Pull Requests
+
+- [#10](https://github.com/Gavant/gavant-ember-pagination/pull/10)  Improve code documentation  *by [Gavant/feature](https://github.com/Gavant/feature)*
+
 ## v3.0.0-beta.0
 
 ### Pull Requests
