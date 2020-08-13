@@ -19,6 +19,7 @@ export interface PaginationController extends Controller {
     filterRootKey: string | null;
     hasMore: boolean;
     includeKey: string;
+    isPaginationReversed: boolean;
     isLoadingPage: boolean;
     isLoadingModels: boolean;
     isLoadingRoute: RegExpMatchArray | null;
@@ -69,6 +70,7 @@ export function ControllerPagination<U extends GenericConstructor<Controller>>(
         sort: NativeArray<any> = A();
         hasMore: boolean = true;
         limit: number = 10;
+        isPaginationReversed: boolean = false;
         isLoadingPage: boolean = false;
         pagingRootKey: string | null = 'page';
         filterRootKey: string | null = 'filter';
@@ -112,7 +114,9 @@ export function ControllerPagination<U extends GenericConstructor<Controller>>(
                     hasMore: models.length >= limit
                 });
 
-                tryInvoke(this.model, 'pushObjects', [models]);
+                tryInvoke(this.model, this.isPaginationReversed ? 'unshiftObjects' : 'pushObjects', [
+                    this.isPaginationReversed ? models.reverse() : models
+                ]);
             } catch (errors) {
                 reject(errors);
             }

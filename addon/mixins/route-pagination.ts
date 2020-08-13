@@ -85,7 +85,10 @@ export function RoutePagination<T extends PaginationRouteClass>(
             });
 
             const modelForController = model.toArray();
-            super.setupController(controller, modelForController);
+            super.setupController(
+                controller,
+                controller.isPaginationReversed ? modelForController.reverse() : modelForController
+            );
         }
 
         /**
