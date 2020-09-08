@@ -1,6 +1,12 @@
 Changelog
 =========
 
+## v3.0.0-beta.2
+
+### Pull Requests
+
+- [#13](https://github.com/Gavant/gavant-ember-pagination/pull/13)  "Clear after request" pagination behavior support  *by [Gavant/feature](https://github.com/Gavant/feature)*
+
 ## v3.0.0-beta.1
 
 ### Pull Requests
