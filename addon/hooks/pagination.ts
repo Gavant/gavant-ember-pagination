@@ -198,18 +198,20 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * Builds the query params object and makes the request for the next
      * page of results (or the first page, if reset is true)
      * @param {Boolean} reset
+     * @param {Boolean} clearAfterRequest
      * @returns {Promise<T[]>}
      * @memberof Pagination
      */
     @action
-    async loadModels(reset = false): Promise<T[]> {
-        if (reset) {
+    async loadModels(reset: boolean = false, clearAfterRequest: boolean = false): Promise<T[]> {
+        if (reset === true && clearAfterRequest !== true) {
             this.clearModels();
         }
 
+        const offset = reset === true && clearAfterRequest === true ? 0 : this.offset;
         const queryParams = buildQueryParams({
+            offset,
             context: this.context,
-            offset: this.offset,
             sorts: this.sorts,
             limit: this.config.limit,
             filterList: this.config.filterList,
@@ -226,6 +228,11 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
             this.isLoading = true;
             const result = await this.queryModels(queryParams);
             const models = result.toArray();
+
+            if (reset === true && clearAfterRequest === true) {
+                this.clearModels();
+            }
+
             this.hasMore = models.length >= this.config.limit!;
             this.metadata = result.meta;
             this.models.pushObjects(models);
@@ -263,22 +270,24 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
 
     /**
      * Reloads the first page of models, alias for `loadModels(true)`
+     * @param {Boolean} clearAfterRequest
      * @returns {Promise<T[]>}
      * @memberof Pagination
      */
     @action
-    reloadModels() {
-        return this.loadModels(true);
+    reloadModels(clearAfterRequest: boolean = false) {
+        return this.loadModels(true, clearAfterRequest);
     }
 
     /**
      * Reloads the first page of models w/filters applied, alias for `loadModels(true)`
+     * @param {Boolean} clearAfterRequest
      * @returns {Promise<T[]>}
      * @memberof Pagination
      */
     @action
-    filterModels() {
-        return this.loadModels(true);
+    filterModels(clearAfterRequest: boolean = false) {
+        return this.loadModels(true, clearAfterRequest);
     }
 
     /**

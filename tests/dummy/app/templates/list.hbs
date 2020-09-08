@@ -16,7 +16,7 @@
                 type="button"
                 class="btn btn-outline-primary"
                 disabled={{if this.paginator.hasMore (if this.paginator.isLoadingModels true false) true}}
-                {{on "click" this.paginator.filterModels}}
+                {{on "click" (fn this.paginator.filterModels false)}}
             >
                 {{if this.paginator.isLoadingModels "Loading..." "Filter"}}
             </button>
@@ -26,7 +26,7 @@
                 type="button"
                 class="btn btn-outline-secondary"
                 disabled={{if this.paginator.hasMore (if this.paginator.isLoadingModels true false) true}}
-                {{on "click" this.paginator.reloadModels}}
+                {{on "click" (fn this.paginator.reloadModels false)}}
             >
                 {{if this.paginator.isLoadingModels "Loading..." "Reload"}}
             </button>
@@ -77,7 +77,7 @@
                 type="button"
                 class="btn btn-outline-primary"
                 disabled={{if this.paginatorTwo.hasMore (if this.paginatorTwo.isLoadingModels true false) true}}
-                {{on "click" this.paginatorTwo.filterModels}}
+                {{on "click" (fn this.paginatorTwo.filterModels true)}}
             >
                 {{if this.paginatorTwo.isLoadingModels "Loading..." "Filter"}}
             </button>
@@ -87,10 +87,11 @@
                 type="button"
                 class="btn btn-outline-secondary"
                 disabled={{if this.paginatorTwo.hasMore (if this.paginatorTwo.isLoadingModels true false) true}}
-                {{on "click" this.paginatorTwo.reloadModels}}
+                {{on "click" (fn this.paginatorTwo.reloadModels true)}}
             >
                 {{if this.paginatorTwo.isLoadingModels "Loading..." "Reload"}}
             </button>
+            <span class="small text-muted">(Clears list after filter/reload requests finish)</span>
         </p>
         {{#each this.paginatorTwo.models as |customer|}}
             <h5>
