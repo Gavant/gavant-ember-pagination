@@ -1,11 +1,12 @@
-import { action } from '@ember/object';
-import { inject as service } from '@ember/service';
 import { getOwner, setOwner } from '@ember/application';
-import NativeArray from '@ember/array/-private/native-array';
-import { tracked } from '@glimmer/tracking';
 import { A } from '@ember/array';
-import DS from 'ember-data';
+import NativeArray from '@ember/array/-private/native-array';
+import { action } from '@ember/object';
 import RouterService from '@ember/routing/router-service';
+import { inject as service } from '@ember/service';
+import { tracked } from '@glimmer/tracking';
+
+import DS from 'ember-data';
 
 import { buildQueryParams, QueryParamsObj } from '@gavant/ember-pagination/utils/query-params';
 
@@ -260,12 +261,12 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * @memberof Pagination
      */
     @action
-    loadMoreModels(): Promise<T[]> | undefined {
+    async loadMoreModels(): Promise<T[]> {
         if (this.hasMore && !this.isLoadingModels) {
             return this.loadModels();
+        } else {
+            return [];
         }
-
-        return undefined;
     }
 
     /**
