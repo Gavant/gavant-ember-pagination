@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es2020",
     "allowJs": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
@@ -17,9 +17,9 @@
     "noEmit": true,
     "inlineSourceMap": true,
     "inlineSources": true,
-    "experimentalDecorators": true,
     "baseUrl": ".",
     "module": "es6",
+    "experimentalDecorators": true,
     "paths": {
       "dummy/tests/*": [
         "tests/*"
