@@ -32,7 +32,7 @@ export interface PaginationConfigs {
     filterRootKey?: string | null;
     includeKey?: string;
     sortKey?: string;
-    serverDateFormat?: string;
+    serializeDate: (date: Date) => string | null;
     processQueryParams?: (params: QueryParamsObj) => QueryParamsObj;
     onChangeSorting?: (sorts: string[], newSorts?: Sorting[]) => Promise<string[] | undefined> | void;
 }
@@ -62,7 +62,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         filterRootKey: 'filter',
         includeKey: 'include',
         sortKey: 'sort',
-        serverDateFormat: 'YYYY-MM-DDTHH:mm:ss'
+        serializeDate: (date) => date.toISOString()
     };
 
     /**
@@ -171,7 +171,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         delete newArgs.metadata;
         delete newArgs.sorts;
 
-        this.setConfigs(newArgs);
+        this.setConfigs(newArgs as unknown as PaginationConfigs);
     }
 
     /**
@@ -223,7 +223,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
             filterRootKey: this.config.filterRootKey,
             includeKey: this.config.includeKey,
             sortKey: this.config.sortKey,
-            serverDateFormat: this.config.serverDateFormat,
+            serializeDate: this.config.serializeDate,
             processQueryParams: this.config.processQueryParams
         });
 

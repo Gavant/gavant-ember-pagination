@@ -1,7 +1,6 @@
 import { get } from '@ember/object';
 import { isArray } from '@ember/array';
 import { isEmpty } from '@ember/utils';
-import moment from 'moment';
 
 export interface QueryParamsObj {
     [x: string]: any;
@@ -18,7 +17,7 @@ interface buildQueryParamsArgs {
     filterRootKey?: string | null;
     includeKey?: string;
     sortKey?: string;
-    serverDateFormat?: string;
+    serializeDate?: (value: Date) => string | null;
     processQueryParams?: (params: QueryParamsObj) => QueryParamsObj;
 }
 
@@ -28,7 +27,7 @@ interface getParamsObjectArgs {
     filterRootKey?: string | null;
     sorts?: string[];
     sortKey?: string;
-    serverDateFormat?: string;
+    serializeDate: (value: Date) => string | null;
 }
 
 /**
@@ -48,7 +47,7 @@ export function buildQueryParams({
     filterRootKey = 'filter',
     includeKey = 'include',
     sortKey = 'sort',
-    serverDateFormat = 'YYYY-MM-DDTHH:mm:ss',
+    serializeDate = (val: Date) => val.toISOString(),
     processQueryParams = (params: QueryParamsObj) => params
 }: buildQueryParamsArgs): QueryParamsObj {
     let queryParams = getParamsObject({
@@ -57,7 +56,7 @@ export function buildQueryParams({
         filterRootKey,
         sorts,
         sortKey,
-        serverDateFormat
+        serializeDate
     });
 
     let pagingRoot = queryParams;
@@ -90,7 +89,7 @@ export function getParamsObject({
     filterRootKey,
     sorts = [],
     sortKey = 'sort',
-    serverDateFormat = 'YYYY-MM-DDTHH:mm:ss'
+    serializeDate
 }: getParamsObjectArgs): QueryParamsObj {
     let params: QueryParamsObj = {};
     let filterRoot = params;
@@ -113,8 +112,8 @@ export function getParamsObject({
             }
 
             let value = get(context, valueKey);
-            if (moment.isMoment(value) || moment.isDate(value)) {
-                value = moment(value).format(serverDateFormat);
+            if (value instanceof Date) {
+                value = serializeDate(value);
             }
 
             filterRoot[key] = value;
