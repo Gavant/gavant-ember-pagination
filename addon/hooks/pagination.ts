@@ -8,7 +8,11 @@ import { tracked } from '@glimmer/tracking';
 
 import DS from 'ember-data';
 
-import { buildQueryParams, QueryParamsObj } from '@gavant/ember-pagination/utils/query-params';
+import {
+    buildQueryParams,
+    defaultSerializeFilterValue,
+    QueryParamsObj
+} from '@gavant/ember-pagination/utils/query-params';
 
 const loadingRegex = /loading$/;
 
@@ -24,28 +28,28 @@ export interface Sorting {
     isAscending: boolean;
 }
 
-export interface PaginationConfigs {
+export interface PaginationConfigs<T extends any> {
     limit?: number;
-    filterList?: string[];
+    filterList?: (keyof T)[];
     includeList?: string[];
     pagingRootKey?: string | null;
     filterRootKey?: string | null;
     includeKey?: string;
     sortKey?: string;
-    serializeDate: (date: Date) => string | null;
+    serializeFilterValue?: (key: string, value: any) => string | null | undefined;
     processQueryParams?: (params: QueryParamsObj) => QueryParamsObj;
     onChangeSorting?: (sorts: string[], newSorts?: Sorting[]) => Promise<string[] | undefined> | void;
 }
 
-export interface PaginationArgs<T extends DS.Model, M = ResponseMetadata> extends PaginationConfigs {
-    context: any;
+export interface PaginationArgs<T extends DS.Model, C extends any, M = ResponseMetadata> extends PaginationConfigs<C> {
+    context: C;
     modelName: string;
     models: NativeArray<T> | T[];
     metadata?: M;
     sorts?: string[];
 }
 
-export class Pagination<T extends DS.Model, M = ResponseMetadata> {
+export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
     @service store!: DS.Store;
     @service router!: RouterService;
 
@@ -54,7 +58,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * @type {PaginationConfigs}
      * @memberof Pagination
      */
-    config: PaginationConfigs = {
+    config: PaginationConfigs<C> = {
         filterList: [],
         includeList: [],
         limit: 20,
@@ -62,7 +66,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         filterRootKey: 'filter',
         includeKey: 'include',
         sortKey: 'sort',
-        serializeDate: (date) => date.toISOString()
+        serializeFilterValue: defaultSerializeFilterValue
     };
 
     /**
@@ -155,7 +159,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * a context, modelName, and initial models/metadata
      * @param {PaginationArgs<T, M>} args
      */
-    constructor(args: PaginationArgs<T, M>) {
+    constructor(args: PaginationArgs<T, C, M>) {
         //set main paginator state
         this.context = args.context;
         this.modelName = args.modelName;
@@ -171,7 +175,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         delete newArgs.metadata;
         delete newArgs.sorts;
 
-        this.setConfigs(newArgs as unknown as PaginationConfigs);
+        this.setConfigs(newArgs as unknown as PaginationConfigs<C>);
     }
 
     /**
@@ -180,7 +184,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
      * @memberof Pagination
      */
     @action
-    setConfigs(config: PaginationConfigs) {
+    setConfigs(config: PaginationConfigs<C>) {
         this.config = { ...this.config, ...config };
         this.hasMore = this.models.length >= this.config.limit!;
     }
@@ -223,7 +227,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
             filterRootKey: this.config.filterRootKey,
             includeKey: this.config.includeKey,
             sortKey: this.config.sortKey,
-            serializeDate: this.config.serializeDate,
+            serializeFilterValue: this.config.serializeFilterValue,
             processQueryParams: this.config.processQueryParams
         });
 
@@ -368,9 +372,9 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
  * on its parent context, so that it can be accessed on the associated template
  * @param {PaginationArgs} args
  */
-const usePagination = <T extends DS.Model, M = ResponseMetadata>(args: PaginationArgs<T, M>) => {
+const usePagination = <T extends DS.Model, C = any, M = ResponseMetadata>(args: PaginationArgs<T, C, M>) => {
     const owner = getOwner(args.context);
-    const paginator = new Pagination<T, M>(args);
+    const paginator = new Pagination<T, C, M>(args);
     setOwner(paginator, owner);
     return paginator;
 };
