@@ -1,34 +1,50 @@
-import { get } from '@ember/object';
 import { isArray } from '@ember/array';
+import { get } from '@ember/object';
 import { isEmpty } from '@ember/utils';
-import moment from 'moment';
 
 export interface QueryParamsObj {
     [x: string]: any;
 }
 
-interface buildQueryParamsArgs {
-    context: any;
+interface buildQueryParamsArgs<T extends any> {
+    context: T;
     offset?: number;
     limit?: number;
-    filterList?: string[];
+    filterList?: (keyof T)[];
     includeList?: string[];
     sorts?: string[];
     pagingRootKey?: string | null;
     filterRootKey?: string | null;
     includeKey?: string;
     sortKey?: string;
-    serverDateFormat?: string;
+    serializeFilterValue?: (key: string, value: any) => any;
     processQueryParams?: (params: QueryParamsObj) => QueryParamsObj;
 }
 
-interface getParamsObjectArgs {
-    context: any;
-    filterList?: string[];
+interface getParamsObjectArgs<T extends any> {
+    context: T;
+    filterList?: (keyof T)[];
     filterRootKey?: string | null;
     sorts?: string[];
     sortKey?: string;
-    serverDateFormat?: string;
+    serializeFilterValue: (key: string, value: any) => any;
+}
+
+/**
+ * Default filter serialization.
+ * If the `value` is a JS Date, return the date value in ISO string format.
+ * Otherwise return the value as is.
+ *
+ * @export
+ * @param {string} key
+ * @param {*} value
+ * @returns {*}
+ */
+export function defaultSerializeFilterValue(_key: string, value: any): any {
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
+    return value;
 }
 
 /**
@@ -48,16 +64,16 @@ export function buildQueryParams({
     filterRootKey = 'filter',
     includeKey = 'include',
     sortKey = 'sort',
-    serverDateFormat = 'YYYY-MM-DDTHH:mm:ss',
+    serializeFilterValue = defaultSerializeFilterValue,
     processQueryParams = (params: QueryParamsObj) => params
-}: buildQueryParamsArgs): QueryParamsObj {
+}: buildQueryParamsArgs<any>): QueryParamsObj {
     let queryParams = getParamsObject({
         context,
         filterList,
         filterRootKey,
         sorts,
         sortKey,
-        serverDateFormat
+        serializeFilterValue
     });
 
     let pagingRoot = queryParams;
@@ -90,8 +106,8 @@ export function getParamsObject({
     filterRootKey,
     sorts = [],
     sortKey = 'sort',
-    serverDateFormat = 'YYYY-MM-DDTHH:mm:ss'
-}: getParamsObjectArgs): QueryParamsObj {
+    serializeFilterValue
+}: getParamsObjectArgs<any>): QueryParamsObj {
     let params: QueryParamsObj = {};
     let filterRoot = params;
 
@@ -112,10 +128,7 @@ export function getParamsObject({
                 valueKey = paramArray[1];
             }
 
-            let value = get(context, valueKey);
-            if (moment.isMoment(value) || moment.isDate(value)) {
-                value = moment(value).format(serverDateFormat);
-            }
+            const value = serializeFilterValue(key, get(context, valueKey));
 
             filterRoot[key] = value;
         });
