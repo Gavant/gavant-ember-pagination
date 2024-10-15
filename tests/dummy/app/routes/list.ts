@@ -47,7 +47,7 @@ export default class List extends Route {
             metadata: model.meta,
             limit: 9,
             sorts: controller.sortsTwo,
-            filterList: ['foo', 'bar', 'baz', 'customFilter:mappedFilter'],
+            filterList: ['foo', 'bar', 'baz', 'customFilter:mappedFilter', 'date'],
             includeList: ['yetAnotherRel', 'imSomethingElse'],
             processQueryParams: controller.processQueryParams
         });
