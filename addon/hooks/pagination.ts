@@ -32,7 +32,7 @@ export interface PaginationConfigs {
     filterRootKey?: string | null;
     includeKey?: string;
     sortKey?: string;
-    serverDateFormat?: string;
+    serverDateFormat?: string | null;
     processQueryParams?: (params: QueryParamsObj) => QueryParamsObj;
     onChangeSorting?: (sorts: string[], newSorts?: Sorting[]) => Promise<string[] | undefined> | void;
 }
@@ -62,7 +62,7 @@ export class Pagination<T extends DS.Model, M = ResponseMetadata> {
         filterRootKey: 'filter',
         includeKey: 'include',
         sortKey: 'sort',
-        serverDateFormat: 'YYYY-MM-DDTHH:mm:ss'
+        serverDateFormat: null
     };
 
     /**

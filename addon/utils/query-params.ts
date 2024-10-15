@@ -18,7 +18,7 @@ interface buildQueryParamsArgs {
     filterRootKey?: string | null;
     includeKey?: string;
     sortKey?: string;
-    serverDateFormat?: string;
+    serverDateFormat?: string | null;
     processQueryParams?: (params: QueryParamsObj) => QueryParamsObj;
 }
 
@@ -28,7 +28,7 @@ interface getParamsObjectArgs {
     filterRootKey?: string | null;
     sorts?: string[];
     sortKey?: string;
-    serverDateFormat?: string;
+    serverDateFormat?: string | null;
 }
 
 /**
@@ -48,7 +48,7 @@ export function buildQueryParams({
     filterRootKey = 'filter',
     includeKey = 'include',
     sortKey = 'sort',
-    serverDateFormat = 'YYYY-MM-DDTHH:mm:ss',
+    serverDateFormat = null,
     processQueryParams = (params: QueryParamsObj) => params
 }: buildQueryParamsArgs): QueryParamsObj {
     let queryParams = getParamsObject({
@@ -114,7 +114,7 @@ export function getParamsObject({
 
             let value = get(context, valueKey);
             if (moment.isMoment(value) || moment.isDate(value)) {
-                value = moment(value).format(serverDateFormat);
+                value = serverDateFormat ? moment(value).format(serverDateFormat) : moment(value).toISOString();
             }
 
             filterRoot[key] = value;
