@@ -5,6 +5,7 @@ import { action } from '@ember/object';
 import RouterService from '@ember/routing/router-service';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
+import { task, TaskGenerator } from 'ember-concurrency';
 
 import DS from 'ember-data';
 
@@ -13,6 +14,7 @@ import {
     defaultSerializeFilterValue,
     QueryParamsObj
 } from '@gavant/ember-pagination/utils/query-params';
+import { taskFor } from 'ember-concurrency-ts';
 
 const loadingRegex = /loading$/;
 
@@ -132,6 +134,16 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
     }
 
     /**
+     * Whether or not the loadModels concurrency task is currently running
+     * @readonly
+     * @type {Boolean}
+     * @memberof Pagination
+     */
+    get isLoadModelsTaskRunning(): boolean {
+        return taskFor(this.loadModels).isRunning;
+    }
+
+    /**
      * Returns true if a pagination request is currently in progress
      * or a loading substate route is rendered. This should be used
      * in templates/app code to check if the paginator is "loading"
@@ -140,7 +152,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      * @memberof Pagination
      */
     get isLoadingModels(): boolean {
-        return this.isLoading || this.isLoadingRoute;
+        return this.isLoading || this.isLoadModelsTaskRunning || this.isLoadingRoute;
     }
 
     /**
@@ -209,8 +221,8 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      * @returns {Promise<T[]>}
      * @memberof Pagination
      */
-    @action
-    async loadModels(reset: boolean = false, clearAfterRequest: boolean = false): Promise<T[]> {
+    @task({ restartable: true })
+    *loadModels(reset: boolean = false, clearAfterRequest: boolean = false): TaskGenerator<T[]> {
         if (reset === true && clearAfterRequest !== true) {
             this.clearModels();
         }
@@ -233,7 +245,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
 
         try {
             this.isLoading = true;
-            const result = await this.queryModels(queryParams);
+            const result = yield this.queryModels(queryParams);
             const models = result.toArray();
 
             if (reset === true && clearAfterRequest === true) {
@@ -269,7 +281,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
     @action
     async loadMoreModels(): Promise<T[]> {
         if (this.hasMore && !this.isLoadingModels) {
-            return this.loadModels();
+            return taskFor(this.loadModels).perform();
         } else {
             return [];
         }
@@ -283,7 +295,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      */
     @action
     reloadModels(clearAfterRequest: boolean = false) {
-        return this.loadModels(true, clearAfterRequest);
+        return taskFor(this.loadModels).perform(true, clearAfterRequest);
     }
 
     /**
@@ -294,7 +306,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      */
     @action
     filterModels(clearAfterRequest: boolean = false) {
-        return this.loadModels(true, clearAfterRequest);
+        return taskFor(this.loadModels).perform(true, clearAfterRequest);
     }
 
     /**
