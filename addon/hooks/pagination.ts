@@ -211,8 +211,8 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      * @returns {Promise<T[]>}
      * @memberof Pagination
      */
-    @action
-    async loadModels(reset: boolean = false, clearAfterRequest: boolean = false): Promise<T[]> {
+    @task({ restartable: true })
+    *loadModels(reset: boolean = false, clearAfterRequest: boolean = false): TaskGenerator<T[]> {
         if (reset === true && clearAfterRequest !== true) {
             this.clearModels();
         }
@@ -235,7 +235,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
 
         try {
             this.isLoading = true;
-            const result = await this.queryModels(queryParams);
+            const result = yield this.queryModels(queryParams);
             const models = result.toArray();
 
             if (reset === true && clearAfterRequest === true) {
@@ -271,7 +271,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
     @action
     async loadMoreModels(): Promise<T[]> {
         if (this.hasMore && !this.isLoadingModels) {
-            return taskFor(this.loadModelsTask).perform();
+            return taskFor(this.loadModels).perform();
         } else {
             return [];
         }
@@ -285,7 +285,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      */
     @action
     reloadModels(clearAfterRequest: boolean = false) {
-        return taskFor(this.loadModelsTask).perform(true, clearAfterRequest);
+        return taskFor(this.loadModels).perform(true, clearAfterRequest);
     }
 
     /**
@@ -296,7 +296,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      */
     @action
     filterModels(clearAfterRequest: boolean = false) {
-        return taskFor(this.loadModelsTask).perform(true, clearAfterRequest);
+        return taskFor(this.loadModels).perform(true, clearAfterRequest);
     }
 
     /**
@@ -365,12 +365,6 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
         this.hasMore = true;
         this.isLoading = false;
     }
-
-    @(task(function* (reset: boolean = false, clearAfterRequest: boolean = false) {
-        const results = yield this.loadModels(reset, clearAfterRequest);
-        return results;
-    }).restartable())
-    declare loadModelsTask: TaskGenerator<T[]>;
 }
 
 /**
