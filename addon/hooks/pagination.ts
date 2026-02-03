@@ -271,7 +271,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
     @action
     async loadMoreModels(): Promise<T[]> {
         if (this.hasMore && !this.isLoadingModels) {
-            return this.loadModelsTask.perform();
+            return taskFor(this.loadModelsTask).perform();
         } else {
             return [];
         }
@@ -285,7 +285,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      */
     @action
     reloadModels(clearAfterRequest: boolean = false) {
-        return this.loadModelsTask.perform(true, clearAfterRequest);
+        return taskFor(this.loadModelsTask).perform(true, clearAfterRequest);
     }
 
     /**
@@ -296,7 +296,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      */
     @action
     filterModels(clearAfterRequest: boolean = false) {
-        return this.loadModelsTask.perform(true, clearAfterRequest);
+        return taskFor(this.loadModelsTask).perform(true, clearAfterRequest);
     }
 
     /**
@@ -366,13 +366,11 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
         this.isLoading = false;
     }
 
-    @task
-    loadModelsTask = taskFor(
-        function* (this: Pagination<T, C, M>, reset: boolean = false, clearAfterRequest: boolean = false) {
-            const results = yield this.loadModels(reset, clearAfterRequest);
-            return results;
-        }.restartable()
-    );
+    @(task(function* (reset: boolean = false, clearAfterRequest: boolean = false) {
+        const results = yield this.loadModels(reset, clearAfterRequest);
+        return results;
+    }).restartable())
+    declare loadModelsTask: TaskGenerator<T[]>;
 }
 
 /**
