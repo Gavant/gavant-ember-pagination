@@ -5,6 +5,7 @@ import { action } from '@ember/object';
 import RouterService from '@ember/routing/router-service';
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
+import { task, TaskGenerator } from 'ember-concurrency';
 
 import DS from 'ember-data';
 
@@ -13,6 +14,7 @@ import {
     defaultSerializeFilterValue,
     QueryParamsObj
 } from '@gavant/ember-pagination/utils/query-params';
+import { taskFor } from 'ember-concurrency-ts';
 
 const loadingRegex = /loading$/;
 
@@ -269,7 +271,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
     @action
     async loadMoreModels(): Promise<T[]> {
         if (this.hasMore && !this.isLoadingModels) {
-            return this.loadModels();
+            return this.loadModelsTask.perform();
         } else {
             return [];
         }
@@ -283,7 +285,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      */
     @action
     reloadModels(clearAfterRequest: boolean = false) {
-        return this.loadModels(true, clearAfterRequest);
+        return this.loadModelsTask.perform(true, clearAfterRequest);
     }
 
     /**
@@ -294,7 +296,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      */
     @action
     filterModels(clearAfterRequest: boolean = false) {
-        return this.loadModels(true, clearAfterRequest);
+        return this.loadModelsTask.perform(true, clearAfterRequest);
     }
 
     /**
@@ -363,6 +365,14 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
         this.hasMore = true;
         this.isLoading = false;
     }
+
+    @task
+    loadModelsTask = taskFor(
+        function* (this: Pagination<T, C, M>, reset: boolean = false, clearAfterRequest: boolean = false) {
+            const results = yield this.loadModels(reset, clearAfterRequest);
+            return results;
+        }.restartable()
+    );
 }
 
 /**
