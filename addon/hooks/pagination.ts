@@ -134,6 +134,16 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
     }
 
     /**
+     * Whether or not the loadModels concurrency task is currently running
+     * @readonly
+     * @type {Boolean}
+     * @memberof Pagination
+     */
+    get isLoadModelsTaskRunning(): boolean {
+        return taskFor(this.loadModels).isRunning;
+    }
+
+    /**
      * Returns true if a pagination request is currently in progress
      * or a loading substate route is rendered. This should be used
      * in templates/app code to check if the paginator is "loading"
@@ -142,7 +152,7 @@ export class Pagination<T extends DS.Model, C = any, M = ResponseMetadata> {
      * @memberof Pagination
      */
     get isLoadingModels(): boolean {
-        return this.isLoading || this.isLoadingRoute;
+        return this.isLoading || this.isLoadModelsTaskRunning || this.isLoadingRoute;
     }
 
     /**
